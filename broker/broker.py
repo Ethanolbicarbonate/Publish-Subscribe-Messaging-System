@@ -10,7 +10,7 @@ import uuid
 from typing import Dict
 from common.constants import (
     HOST, BROKER_PORT, TYPE_PUBLISH, TYPE_SUBSCRIBE, 
-    TYPE_UNSUBSCRIBE, TYPE_CONNECTED, TYPE_ACK
+    TYPE_UNSUBSCRIBE, TYPE_CONNECTED, TYPE_ACK, TYPE_HEARTBEAT
 )
 from common.protocol import recv_message, send_message
 from common.message import Message
@@ -18,6 +18,7 @@ from broker.topic_manager import TopicManager
 from broker.queue_manager import QueueManager
 from broker.delivery_manager import DeliveryManager
 from broker.session_manager import SessionManager
+from broker.heartbeat_monitor import HeartbeatMonitor
 
 class Broker:
     """
@@ -45,6 +46,9 @@ class Broker:
         # --- Subphase 3.3 Additions ---
         self.session_manager = SessionManager(self.queue_manager, self.active_clients, self.clients_lock)
         
+        # --- Subphase 5.1 Additions ---
+        self.heartbeat_monitor = HeartbeatMonitor(self.active_clients, self.clients_lock)
+        
     def start(self) -> None:
         """Binds the server socket and begins accepting connections in a loop."""
         self.server_socket.bind((self.host, self.port))
@@ -52,6 +56,7 @@ class Broker:
         self.running = True
         
         self.delivery_manager.start()
+        self.heartbeat_monitor.start()
         print(f"[Broker] Started successfully. Listening on {self.host}:{self.port}...")
         
         try:
@@ -100,6 +105,7 @@ class Broker:
             
             # Register the session (Triggers durable queue replay)
             self.session_manager.register_client(client_id, conn)
+            self.heartbeat_monitor.register_client(client_id)
 
             # --- Message Loop Phase ---
             while self.running:
@@ -121,6 +127,8 @@ class Broker:
                     msg_id = msg.payload.get("msg_id")
                     if msg_id:
                         self.delivery_manager.handle_ack(msg_id, client_id)
+                elif msg.type == TYPE_HEARTBEAT:
+                    self.heartbeat_monitor.record_heartbeat(client_id)
                 
         except Exception as e:
             print(f"[Broker] ⚠️ Error handling client {client_id}: {e}")
@@ -128,6 +136,7 @@ class Broker:
             if client_id:
                 print(f"[Broker] 🔴 Connection closed for {client_id}")
                 self.session_manager.deregister_client(client_id)
+                self.heartbeat_monitor.remove_client(client_id)
                 # CRITICAL: We NO LONGER remove subscriptions on disconnect! 
                 # If we did, the durable queue wouldn't capture messages while the client is offline.
             conn.close()
@@ -147,6 +156,7 @@ class Broker:
         """Gracefully shuts down the broker."""
         self.running = False
         self.delivery_manager.stop()
+        self.heartbeat_monitor.stop()
         self.server_socket.close()
         print("[Broker] Offline.")
 
