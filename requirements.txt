@@ -1,0 +1,6 @@
+# Web Dashboard dependencies
+flask>=3.0.0
+flask-socketio>=5.3.6
+
+# Async worker for Flask-SocketIO
+eventlet>=0.33.3
