@@ -11,6 +11,9 @@ from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
+# --- Subphase 6.2 Additions ---
+from dashboard.dashboard_subscriber import DashboardSubscriber
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
 # Use eventlet for async WebSocket operations, allow CORS for local dev
@@ -49,6 +52,12 @@ def handle_disconnect():
 def run_dashboard():
     """Starts the Flask-SocketIO server."""
     print(f"[Dashboard Server] Starting on port {DASHBOARD_PORT}...")
+    
+    # --- Subphase 6.2 Additions ---
+    # Start the internal subscriber proxy in a background eventlet thread
+    dash_sub = DashboardSubscriber(socketio, broker_stats)
+    eventlet.spawn(dash_sub.start)
+    
     # use_reloader=False is important here so it doesn't spawn duplicate processes
     socketio.run(app, host='0.0.0.0', port=DASHBOARD_PORT, debug=False, use_reloader=False)
 
