@@ -17,6 +17,7 @@ from common.message import Message
 from broker.topic_manager import TopicManager
 from broker.queue_manager import QueueManager
 from broker.delivery_manager import DeliveryManager
+from broker.session_manager import SessionManager
 
 class Broker:
     """
@@ -41,6 +42,9 @@ class Broker:
         self.queue_manager = QueueManager()
         self.delivery_manager = DeliveryManager(self.queue_manager, self.active_clients, self.clients_lock)
         
+        # --- Subphase 3.3 Additions ---
+        self.session_manager = SessionManager(self.queue_manager, self.active_clients, self.clients_lock)
+        
     def start(self) -> None:
         """Binds the server socket and begins accepting connections in a loop."""
         self.server_socket.bind((self.host, self.port))
@@ -56,20 +60,11 @@ class Broker:
                 conn, addr = self.server_socket.accept()
                 print(f"[Broker] 🟢 New connection established from {addr}")
                 
-                # Generate a unique client ID for this session
-                client_id = str(uuid.uuid4())
-                
-                with self.clients_lock:
-                    self.active_clients[client_id] = conn
-                    
-                # Send the client their ID
-                welcome_msg = Message(type=TYPE_CONNECTED, payload={"client_id": client_id})
-                send_message(conn, welcome_msg)
-                
+                # --- Subphase 3.3 Change: Handshake moved to client thread ---
                 # Spin up a dedicated thread for this client
                 client_thread = threading.Thread(
                     target=self._handle_client, 
-                    args=(conn, addr, client_id),
+                    args=(conn, addr),
                     daemon=True # Daemons exit when the main thread exits
                 )
                 client_thread.start()
@@ -81,12 +76,32 @@ class Broker:
         finally:
             self.stop()
             
-    def _handle_client(self, conn: socket.socket, addr: tuple, client_id: str) -> None:
+    def _handle_client(self, conn: socket.socket, addr: tuple) -> None:
         """
         Dedicated thread function for a single client connection.
-        Continuously reads messages until the client disconnects.
+        Handles the CONNECT handshake, then reads messages continuously.
         """
+        client_id = None
         try:
+            # --- Handshake Phase ---
+            init_msg = recv_message(conn)
+            if not init_msg or init_msg.type != 'CONNECT':
+                print(f"[Broker] ⚠️ Invalid handshake from {addr}. Expected CONNECT. Closing.")
+                return
+                
+            client_id = init_msg.payload.get("client_id")
+            if not client_id:
+                # New client, generate a UUID
+                client_id = str(uuid.uuid4())
+                
+            # Send the client their ID
+            welcome_msg = Message(type=TYPE_CONNECTED, payload={"client_id": client_id})
+            send_message(conn, welcome_msg)
+            
+            # Register the session (Triggers durable queue replay)
+            self.session_manager.register_client(client_id, conn)
+
+            # --- Message Loop Phase ---
             while self.running:
                 msg = recv_message(conn)
                 if msg is None:
@@ -110,12 +125,11 @@ class Broker:
         except Exception as e:
             print(f"[Broker] ⚠️ Error handling client {client_id}: {e}")
         finally:
-            print(f"[Broker] 🔴 Connection closed for {client_id}")
-            with self.clients_lock:
-                if client_id in self.active_clients:
-                    del self.active_clients[client_id]
-            # Clean up all subscriptions associated with the disconnected client
-            self.topic_manager.remove_all_subscriptions(client_id)
+            if client_id:
+                print(f"[Broker] 🔴 Connection closed for {client_id}")
+                self.session_manager.deregister_client(client_id)
+                # CRITICAL: We NO LONGER remove subscriptions on disconnect! 
+                # If we did, the durable queue wouldn't capture messages while the client is offline.
             conn.close()
 
     def _route_message(self, msg: Message) -> None:
