@@ -4,27 +4,39 @@
 
 echo "=== 🚀 Starting Pub/Sub Distributed System ==="
 
+# Detect Python command (python3 is standard on Linux/WSL, python on some Windows/Mac)
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+else
+    echo "❌ Error: Python is not installed or not in your PATH."
+    exit 1
+fi
+
+echo "Using command: $PYTHON_CMD"
+
 # 1. Start the Broker Core
 echo "[1/4] Starting Broker..."
-python -m broker.broker &
+$PYTHON_CMD -m broker.broker &
 BROKER_PID=$!
 sleep 2 # Give the broker time to bind to the port
 
 # 2. Start the Web Dashboard
 echo "[2/4] Starting Web Dashboard..."
-python -m dashboard.app &
+$PYTHON_CMD -m dashboard.app &
 DASHBOARD_PID=$!
 sleep 2
 
 # 3. Start the Live Stock Publisher
 echo "[3/4] Starting Stock Market Feed..."
-python -m demo.stock_publisher &
+$PYTHON_CMD -m demo.stock_publisher &
 PUB_PID=$!
 sleep 1
 
 # 4. Start the CLI Alert Subscriber
 echo "[4/4] Starting CLI Alert Subscriber..."
-python -m demo.alert_subscriber &
+$PYTHON_CMD -m demo.alert_subscriber &
 SUB_PID=$!
 
 # Define a cleanup function to gracefully shut down all background processes on exit
@@ -53,7 +65,7 @@ if [ "$1" == "--crash-test" ]; then
     sleep 10
     
     echo "🔄 RESTARTING ALERT SUBSCRIBER to trigger durable queue replay..."
-    python -m demo.alert_subscriber &
+    $PYTHON_CMD -m demo.alert_subscriber &
     SUB_PID=$! # Update PID so cleanup still works
 fi
 
