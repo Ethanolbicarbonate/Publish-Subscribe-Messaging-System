@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📡 PubSub Live Dashboard</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="dashboard-header">
+        <h1>📡 PubSub Live Dashboard</h1>
+        <div class="connection-status">
+            <span id="socket-status-dot" class="status-dot offline"></span>
+            <span id="socket-status-text">Disconnected</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- TOP LEFT: Live Price Charts -->
+        <section class="panel panel-charts">
+            <div class="panel-header">📈 LIVE PRICE CHARTS</div>
+            <div class="charts-grid">
+                <div class="chart-container"><canvas id="chart-AAPL"></canvas></div>
+                <div class="chart-container"><canvas id="chart-TSLA"></canvas></div>
+                <div class="chart-container"><canvas id="chart-GOOGL"></canvas></div>
+                <div class="chart-container"><canvas id="chart-AMZN"></canvas></div>
+            </div>
+        </section>
+
+        <!-- TOP RIGHT: Broker Status -->
+        <section class="panel panel-status">
+            <div class="panel-header">⚙️ BROKER STATUS</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Connected Clients</div>
+                    <div class="stat-value" id="stat-clients">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Topics</div>
+                    <div class="stat-value" id="stat-topics">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Messages Delivered</div>
+                    <div class="stat-value" id="stat-delivered">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending ACKs</div>
+                    <div class="stat-value" id="stat-acks">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM LEFT: Message Feed -->
+        <section class="panel panel-feed">
+            <div class="panel-header">📨 MESSAGE FEED</div>
+            <div class="feed-container">
+                <ul id="message-list" class="scrolling-list">
+                    <!-- Messages will be injected here via JS -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- BOTTOM RIGHT: Alert Log -->
+        <section class="panel panel-alerts">
+            <div class="panel-header">🚨 ALERT LOG</div>
+            <div class="alerts-container">
+                <ul id="alert-list" class="scrolling-list">
+                    <!-- Alerts will be injected here via JS -->
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Local JavaScript -->
+    <!-- Note: These files will be created in the next subphases! -->
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/alerts.js"></script>
+    <script src="/static/js/socket.js"></script>
+</body>
+</html>
