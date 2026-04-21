@@ -1,0 +1,235 @@
+/* * Dashboard Styling.
+ * Implements a dark navy "stock terminal" theme with CSS Grid layouts,
+ * flexbox components, and custom CSS animations for real-time alerts.
+ */
+
+/* --- Theme Variables --- */
+:root {
+    --bg-dark: #0d1117;
+    --bg-panel: #161b22;
+    --border-color: #30363d;
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    
+    --color-green: #4ade80;
+    --color-red: #f87171;
+    --color-amber: #fbbf24;
+    
+    --font-mono: 'Courier New', Courier, monospace;
+}
+
+/* --- Base Reset & Typography --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent full-page scroll, panels will scroll internally */
+}
+
+/* --- Header --- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-header h1 {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online { background-color: var(--color-green); box-shadow: 0 0 8px var(--color-green); }
+.status-dot.offline { background-color: var(--color-red); box-shadow: 0 0 8px var(--color-red); }
+
+/* --- Main Grid Layout --- */
+.dashboard-grid {
+    flex: 1;
+    display: grid;
+    /* Charts/Feed slightly wider than Status/Alerts */
+    grid-template-columns: 1.5fr 1fr; 
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: 0; /* Critical for inner scrolling */
+}
+
+/* --- Generic Panel Styling --- */
+.panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Transition for flash animations */
+    transition: background-color 0.3s ease; 
+}
+
+.panel-header {
+    padding: 0.75rem 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* --- Top Left: Charts --- */
+.charts-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1px; /* Creates inner borders */
+    background-color: var(--border-color); /* Gap color */
+}
+
+.chart-container {
+    background-color: var(--bg-panel);
+    padding: 0.5rem;
+    position: relative;
+    min-height: 0;
+}
+
+/* --- Top Right: Broker Status --- */
+.stats-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.stat-card {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    color: var(--color-green);
+    font-weight: bold;
+}
+
+/* --- Scrolling Lists (Feed & Alerts) --- */
+.feed-container, .alerts-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.scrolling-list {
+    list-style: none;
+}
+
+/* Custom Scrollbar */
+.scrolling-list::-webkit-scrollbar { width: 8px; }
+.scrolling-list::-webkit-scrollbar-track { background: var(--bg-panel); }
+.scrolling-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+/* --- Bottom Left: Message Feed --- */
+.feed-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.feed-item:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.feed-time { color: var(--text-secondary); }
+
+.topic-tag {
+    background-color: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.payload-data {
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+/* --- Bottom Right: Alerts Log --- */
+.alert-item {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    border-left: 4px solid transparent;
+}
+
+.alert-item.warning { border-left-color: var(--color-amber); }
+.alert-item.critical { border-left-color: var(--color-red); }
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+}
+
+.alert-stock { font-weight: bold; color: var(--text-primary); }
+
+.alert-message { color: var(--text-primary); }
+
+/* --- Alert Flash Animations --- */
+@keyframes flashWarning {
+    0% { background-color: rgba(251, 191, 36, 0.3); } /* Amber */
+    100% { background-color: var(--bg-panel); }
+}
+
+@keyframes flashCritical {
+    0% { background-color: rgba(248, 113, 113, 0.4); } /* Red */
+    100% { background-color: var(--bg-panel); }
+}
+
+.flash-warning { animation: flashWarning 0.5s ease-out; }
+.flash-critical { animation: flashCritical 0.5s ease-out; }
