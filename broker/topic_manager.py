@@ -71,25 +71,31 @@ class TopicManager:
         return matched_subs
 
     def _matches(self, pattern: str, topic: str) -> bool:
-        """
-        Checks if a published topic matches a subscription pattern.
-        Rules:
-        - Exact string match returns True
-        - Segment-by-segment match where '*' acts as a wildcard for a single segment
-          Example: 'STOCK.*' matches 'STOCK.AAPL' but NOT 'STOCK.AAPL.OPTIONS'
-        """
-        if pattern == topic:
-            return True
-            
-        pattern_segments = pattern.split('.')
-        topic_segments = topic.split('.')
-        
-        # For our basic wildcard rule, segment count must be identical
-        if len(pattern_segments) != len(topic_segments):
-            return False
-            
-        for p_seg, t_seg in zip(pattern_segments, topic_segments):
-            if p_seg != '*' and p_seg != t_seg:
-                return False
+            """
+            Checks if a published topic matches a subscription pattern.
+            Rules:
+            - Exact string match returns True.
+            - '*' acts as a wildcard for a single exact segment.
+            - '#' acts as a multi-level wildcard for all subsequent segments (must be at the end).
+            """
+            if pattern == topic:
+                return True
                 
-        return True
+            pattern_segments = pattern.split('.')
+            topic_segments = topic.split('.')
+            
+            for i, p_seg in enumerate(pattern_segments):
+                # The '#' wildcard matches everything that follows
+                if p_seg == '#':
+                    return True
+                    
+                # If the topic is shorter than the pattern, and we haven't hit a '#'
+                if i >= len(topic_segments):
+                    return False
+                    
+                # If the segment is not a single wildcard and does not match exactly
+                if p_seg != '*' and p_seg != topic_segments[i]:
+                    return False
+                    
+            # If the loop completes without returning, the segment counts must match
+            return len(pattern_segments) == len(topic_segments)
