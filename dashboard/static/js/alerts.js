@@ -36,8 +36,8 @@ function addAlert(alertData) {
 function triggerPanelFlash(severity) {
     const panel = document.querySelector('.panel-alerts');
     
-    // Remove existing flash classes to reset the animation if it's already playing
-    panel.classList.remove('flash-warning', 'flash-critical');
+    // Update this line to include 'flash-success'
+    panel.classList.remove('flash-warning', 'flash-critical', 'flash-success');
     
     // Force a browser reflow to guarantee the animation restarts
     void panel.offsetWidth; 

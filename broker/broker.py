@@ -3,7 +3,7 @@ Core Broker TCP Server.
 Handles incoming connections, manages a thread pool for clients,
 and manages the raw socket lifecycle.
 """
-
+import time
 import socket
 import threading
 import uuid
@@ -20,6 +20,7 @@ from broker.queue_manager import QueueManager
 from broker.delivery_manager import DeliveryManager
 from broker.session_manager import SessionManager
 from broker.heartbeat_monitor import HeartbeatMonitor
+from persistence import db
 
 class Broker:
     """
@@ -54,6 +55,7 @@ class Broker:
         
         self.delivery_manager.start()
         self.heartbeat_monitor.start()
+        threading.Thread(target=self._broadcast_stats_loop, daemon=True).start()
         print(f"[Broker] Started successfully. Listening on {self.host}:{self.port}...")
         
         try:
@@ -143,6 +145,31 @@ class Broker:
         
         self.server_socket.close()
         print("[Broker] Offline.")
+    
+    def _broadcast_stats_loop(self):
+            """Background thread that publishes broker metrics to a $SYS topic."""
+            while self.running:
+                time.sleep(2.0)
+                
+                # Count pending messages from DB directly using the db module
+                with db._get_connection() as conn:
+                    cursor = conn.execute("SELECT COUNT(*) FROM delivery_status WHERE status = ?", ('PENDING',))
+                    pending_acks = cursor.fetchone()[0]
+
+                stats_payload = {
+                    "connected_clients": len(self.active_clients),
+                    "active_topics": len(self.topic_manager._pattern_to_subs),
+                    "pending_acks": pending_acks
+                }
+                
+                # Create an internal system message
+                sys_msg = Message(
+                    type=TYPE_PUBLISH,
+                    topic="$SYS.BROKER.STATS",
+                    payload=stats_payload
+                )
+                # Route it just like a normal message
+                self._route_message(sys_msg)
 
 if __name__ == "__main__":
     broker = Broker()

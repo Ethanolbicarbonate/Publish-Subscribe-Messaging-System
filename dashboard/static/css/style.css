@@ -209,6 +209,7 @@ body {
 
 .alert-item.warning { border-left-color: var(--color-amber); }
 .alert-item.critical { border-left-color: var(--color-red); }
+.alert-item.success { border-left-color: var(--color-green); }
 
 .alert-header {
     display: flex;
@@ -231,5 +232,11 @@ body {
     100% { background-color: var(--bg-panel); }
 }
 
+@keyframes flashSuccess {
+    0% { background-color: rgba(74, 222, 128, 0.3); } /* Green */
+    100% { background-color: var(--bg-panel); }
+}
+
 .flash-warning { animation: flashWarning 0.5s ease-out; }
 .flash-critical { animation: flashCritical 0.5s ease-out; }
+.flash-success { animation: flashSuccess 0.5s ease-out; }

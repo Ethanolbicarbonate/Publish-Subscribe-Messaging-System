@@ -36,6 +36,7 @@ sleep 1
 
 # 4. Start the CLI Alert Subscriber
 echo "[4/4] Starting CLI Alert Subscriber..."
+# Pass default arguments, or allow the script to take them from the environment
 $PYTHON_CMD -m demo.alert_subscriber &
 SUB_PID=$!
 

@@ -42,3 +42,7 @@ STATUS_PENDING = 'PENDING'
 STATUS_DELIVERED = 'DELIVERED'
 # DEAD_LETTER implies the message exhausted retries and the subscriber is unreachable
 STATUS_DEAD_LETTER = 'DEAD_LETTER'
+
+# --- Demo Alert Thresholds ---
+ALERT_HIGH_THRESH = 200.0
+ALERT_LOW_THRESH = 50.0
