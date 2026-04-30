@@ -2,6 +2,13 @@
 
 A Python-based Publish-Subscribe middleware system featuring persistent queues, at-least-once delivery, and topic-based filtering.
 
+## Project Deliverables
+- `docs/architecture.md` — system architecture overview
+- `docs/design_decisions.md` — design rationale and trade-offs
+- `docs/diagrams/` — architecture and workflow diagrams
+- `tests/` — validation and simulation tests
+- `demo/` — demo publisher/subscriber scripts and run examples
+
 ## How to Run the Demo
 1. Open 4 terminals and run:
     - In Terminal 1, type: python -m broker.broker
