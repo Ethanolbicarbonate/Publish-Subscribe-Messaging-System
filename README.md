@@ -3,8 +3,6 @@
 A Python-based Publish-Subscribe middleware system featuring persistent queues, at-least-once delivery, and topic-based filtering.
 
 ## How to Run the Demo
-We have provided a bash script to launch the entire real-world market simulation.
-
 1. Open 4 terminals and run:
     - In Terminal 1, type: python -m broker.broker
     - In Terminal 2, type: python -m dashboard.app
