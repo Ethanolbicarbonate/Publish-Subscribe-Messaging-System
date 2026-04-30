@@ -6,7 +6,7 @@ A Python-based Publish-Subscribe middleware system featuring persistent queues, 
 - `docs/architecture.md` — system architecture overview
 - `docs/design_decisions.md` — design rationale and trade-offs
 - `docs/diagrams/` — architecture and workflow diagrams
-- `docs/System_Diagram_Document.pdf` — final document of the whole project
+- `docs/System_Design_Document.pdf` — final document of the whole project
 - `tests/` — validation and simulation tests
 - `demo/` — demo publisher/subscriber scripts 
 
