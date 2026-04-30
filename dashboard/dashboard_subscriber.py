@@ -51,15 +51,14 @@ class DashboardSubscriber:
             self.socketio.emit('alert', alert_data)
             
         elif not in_danger_zone and already_alerting:
-                    # The price has recovered to normal levels.
-                    self.active_alerts[stock_symbol] = False
-                    
-                    # Emit a RECOVERY alert to the dashboard
-                    alert_data = {
-                        "stock": stock_symbol,
-                        "price": price,
-                        "severity": "success",  # New severity level
-                        "message": f"✅ Stabilized at ${price:.2f}",
-                        "timestamp": msg.timestamp
-                    }
-                    self.socketio.emit('alert', alert_data)
+            self.active_alerts[stock_symbol] = False
+            
+            # Emit a RECOVERY alert to the dashboard (Removed emoji)
+            alert_data = {
+                "stock": stock_symbol,
+                "price": price,
+                "severity": "success",
+                "message": f"Stabilized at ${price:.2f}",
+                "timestamp": msg.timestamp
+            }
+            self.socketio.emit('alert', alert_data)

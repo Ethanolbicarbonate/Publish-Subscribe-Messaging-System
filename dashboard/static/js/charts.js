@@ -1,9 +1,3 @@
-/**
- * Live Price Charts Management.
- * Uses Chart.js to render real-time line charts for each stock.
- * Maintains a sliding window of data and dynamically updates colors based on price action.
- */
-
 const MAX_DATA_POINTS = 30;
 const charts = {};
 const openPrices = {};
@@ -18,11 +12,13 @@ function initChart(canvasId, symbol) {
             datasets: [{
                 label: symbol,
                 data: [],
-                borderColor: '#4ade80', // Default green
+                borderColor: '#10b981', // Tailwind Green
                 borderWidth: 2,
-                tension: 0.1, // Slight curve to the line
-                pointRadius: 0, // Hide points for a cleaner "ticker" look
-                pointHoverRadius: 4
+                tension: 0.2, // Smoother curve
+                pointRadius: 0, 
+                pointHoverRadius: 4,
+                fill: true, // Enable gradient fill underneath
+                backgroundColor: 'rgba(16, 185, 129, 0.1)' // Default light green fill
             }]
         },
         options: {
@@ -30,19 +26,25 @@ function initChart(canvasId, symbol) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: { mode: 'index', intersect: false }
-            },
-            scales: {
-                x: { 
-                    display: false // Hide X-axis labels to save space
-                },
-                y: { 
-                    position: 'right', // Standard financial layout
-                    grid: { color: '#1f2937' }, // Dark grid lines
-                    ticks: { color: '#9ca3af' } // Light text
+                tooltip: { 
+                    mode: 'index', 
+                    intersect: false,
+                    backgroundColor: 'rgba(24, 24, 27, 0.9)',
+                    titleFont: { family: 'Inter', size: 13 },
+                    bodyFont: { family: 'Fira Code', size: 12 },
+                    padding: 10,
+                    borderColor: '#3f3f46',
+                    borderWidth: 1
                 }
             },
-            // Disable animations for real-time performance
+            scales: {
+                x: { display: false },
+                y: { 
+                    position: 'right',
+                    grid: { color: '#27272a', drawBorder: false }, 
+                    ticks: { color: '#71717a', font: { family: 'Fira Code', size: 10 } } 
+                }
+            },
             animation: { duration: 0 },
             hover: { animationDuration: 0 },
             responsiveAnimationDuration: 0
@@ -50,7 +52,6 @@ function initChart(canvasId, symbol) {
     });
 }
 
-// Initialize all 4 charts once the DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
     initChart('chart-AAPL', 'AAPL');
     initChart('chart-TSLA', 'TSLA');
@@ -58,37 +59,43 @@ document.addEventListener("DOMContentLoaded", () => {
     initChart('chart-AMZN', 'AMZN');
 });
 
-/**
- * Called externally (from socket.js) whenever a new stock price arrives.
- */
 function updateChart(symbol, price, timestamp) {
     const chart = charts[symbol];
-    if (!chart) return; // Ignore if we don't have a chart for this symbol
+    if (!chart) return; 
 
-    // 1. Track the "open" price (the first price we receive for this session)
     if (openPrices[symbol] === undefined) {
         openPrices[symbol] = price;
     }
 
-    // 2. Determine color (Green if >= open, Red if < open)
     const openPrice = openPrices[symbol];
     const isUp = price >= openPrice;
-    chart.data.datasets[0].borderColor = isUp ? '#4ade80' : '#f87171';
+    
+    // Create dynamic gradient based on color
+    const ctx = chart.ctx;
+    const gradient = ctx.createLinearGradient(0, 0, 0, chart.height);
+    
+    if (isUp) {
+        chart.data.datasets[0].borderColor = '#10b981'; // Green
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+    } else {
+        chart.data.datasets[0].borderColor = '#ef4444'; // Red
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
+        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+    }
+    
+    chart.data.datasets[0].backgroundColor = gradient;
 
-    // 3. Add new data point
-    // Convert ISO timestamp to a readable time format
     const dateObj = new Date(timestamp);
     const timeLabel = dateObj.toLocaleTimeString([], { hour12: false });
     
     chart.data.labels.push(timeLabel);
     chart.data.datasets[0].data.push(price);
 
-    // 4. Maintain the sliding window size
     if (chart.data.labels.length > MAX_DATA_POINTS) {
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
     }
 
-    // 5. Render
     chart.update();
 }
