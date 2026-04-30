@@ -7,7 +7,7 @@ A Python-based Publish-Subscribe middleware system featuring persistent queues, 
 - `docs/design_decisions.md` — design rationale and trade-offs
 - `docs/diagrams/` — architecture and workflow diagrams
 - `tests/` — validation and simulation tests
-- `demo/` — demo publisher/subscriber scripts and run examples
+- `demo/` — demo publisher/subscriber scripts 
 
 ## How to Run the Demo
 1. Open 4 terminals and run:
