@@ -1,7 +1,9 @@
 import time
 from client.subscriber import Subscriber
 from common.message import Message
-from common.constants import ALERT_HIGH_THRESH, ALERT_LOW_THRESH
+
+ALERT_HIGH_THRESH = 200.0
+ALERT_LOW_THRESH = 50.0
 
 # ANSI Color Codes for terminal output
 COLOR_RED = '\033[91m'

@@ -1,8 +1,9 @@
 import time
 from client.subscriber import Subscriber
 from common.message import Message
-from common.constants import ALERT_HIGH_THRESH, ALERT_LOW_THRESH
 
+ALERT_HIGH_THRESH = 200.0
+ALERT_LOW_THRESH = 50.0
 class DashboardSubscriber:
     def __init__(self, socketio, broker_stats):
         self.socketio = socketio
