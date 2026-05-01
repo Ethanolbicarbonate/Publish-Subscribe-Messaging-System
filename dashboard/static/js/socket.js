@@ -44,3 +44,72 @@ socket.on('audit_update', (rawJson) => {
     list.prepend(li);
     if (list.children.length > 50) list.lastElementChild.remove();
 });
+
+function updateSubscriberUi(subscriberId, connected) {
+    const statusEl = document.getElementById(`status-${subscriberId}`);
+    const buttonEl = document.getElementById(`button-${subscriberId}`);
+    if (!statusEl || !buttonEl) return;
+
+    statusEl.textContent = connected ? 'Connected' : 'Disconnected';
+    statusEl.classList.toggle('connected', connected);
+    statusEl.classList.toggle('disconnected', !connected);
+    statusEl.classList.toggle('pending', false);
+
+    buttonEl.textContent = connected ? 'Disconnect' : 'Reconnect';
+}
+
+async function refreshSubscriberStatuses() {
+    try {
+        const response = await fetch('/api/subscribers/status');
+        if (!response.ok) throw new Error('Status request failed');
+
+        const statuses = await response.json();
+        Object.entries(statuses).forEach(([subscriberId, info]) => {
+            updateSubscriberUi(subscriberId, info.connected);
+        });
+    } catch (error) {
+        console.warn('[Dashboard] Failed to refresh subscriber statuses.', error);
+    }
+}
+
+async function controlSubscriber(subscriberId, action) {
+    const buttonEl = document.getElementById(`button-${subscriberId}`);
+    const statusEl = document.getElementById(`status-${subscriberId}`);
+    if (!buttonEl) return;
+
+    buttonEl.disabled = true;
+    if (statusEl && action === 'reconnect') {
+        statusEl.textContent = 'Reconnecting...';
+        statusEl.classList.remove('connected', 'disconnected');
+        statusEl.classList.add('pending');
+    }
+
+    try {
+        const response = await fetch(`/api/subscriber/${encodeURIComponent(subscriberId)}/${action}`, {
+            method: 'POST',
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        await response.json();
+    } catch (error) {
+        console.error('[Dashboard] Subscriber action failed:', error);
+    }
+
+    await refreshSubscriberStatuses();
+    buttonEl.disabled = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-subscriber-id]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const subscriberId = button.dataset.subscriberId;
+            const action = button.textContent.trim().toLowerCase() === 'disconnect' ? 'disconnect' : 'reconnect';
+            controlSubscriber(subscriberId, action);
+        });
+    });
+
+    refreshSubscriberStatuses();
+});

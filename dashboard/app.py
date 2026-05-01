@@ -6,7 +6,7 @@ import eventlet
 eventlet.monkey_patch()
 
 import subprocess
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
@@ -18,6 +18,8 @@ from dashboard.subscribers.audit_log import AuditLogSubscriber
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+
+dashboard_subscribers = {}
 
 # --- Routes ---
 
@@ -56,6 +58,35 @@ def trigger_crash_api():
     
     return jsonify({"status": "success", "message": f"Crash publisher spawned for {topic}"})
 
+@app.route('/api/subscribers/status')
+def subscribers_status_api():
+    return jsonify({
+        subscriber_id: {
+            "connected": backend.subscriber.connected,
+            "running": backend.subscriber.running,
+        }
+        for subscriber_id, backend in dashboard_subscribers.items()
+    })
+
+@app.route('/api/subscriber/<subscriber_id>/<action>', methods=['POST'])
+def subscriber_control_api(subscriber_id, action):
+    backend = dashboard_subscribers.get(subscriber_id)
+    if backend is None:
+        abort(404, description="Subscriber not found")
+
+    if action == "disconnect":
+        backend.subscriber.stop()
+        return jsonify({"status": "success", "subscriber_id": subscriber_id, "connected": False})
+
+    if action == "reconnect":
+        if backend.subscriber.running and backend.subscriber.connected:
+            return jsonify({"status": "success", "subscriber_id": subscriber_id, "connected": True, "message": "Already connected"})
+
+        eventlet.spawn(backend.start)
+        return jsonify({"status": "success", "subscriber_id": subscriber_id, "connected": False, "message": "Reconnect started"})
+
+    abort(400, description="Unsupported action")
+
 # --- WebSocket Handlers ---
 
 @socketio.on('connect')
@@ -71,6 +102,12 @@ def run_dashboard():
     vis_sub = VisualizerSubscriber(socketio)
     alert_sub = AlertMonitorSubscriber(socketio)
     audit_sub = AuditLogSubscriber(socketio)
+
+    dashboard_subscribers.update({
+        vis_sub.subscriber.client_id: vis_sub,
+        alert_sub.subscriber.client_id: alert_sub,
+        audit_sub.subscriber.client_id: audit_sub,
+    })
     
     # 2. Spawn them as background eventlet threads
     eventlet.spawn(vis_sub.start)

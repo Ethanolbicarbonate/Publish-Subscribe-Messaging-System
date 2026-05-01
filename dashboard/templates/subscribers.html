@@ -47,7 +47,11 @@
         <!-- LEFT: Visualizer Subscriber -->
         <section class="panel panel-charts">
             <div class="panel-header">
-                <i class="ph ph-chart-line-up"></i> SUB-VISUALIZER-01 (Listening to MARKET.#)
+                <div><i class="ph ph-chart-line-up"></i> SUB-VISUALIZER-01 (Listening to MARKET.#)</div>
+                <div class="panel-actions">
+                    <span class="subscriber-status disconnected" id="status-SUB-VISUALIZER-01">Disconnected</span>
+                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-VISUALIZER-01" id="button-SUB-VISUALIZER-01">Reconnect</button>
+                </div>
             </div>
             <div class="charts-grid" style="grid-template-rows: 1fr 1fr 1fr 1fr; grid-template-columns: 1fr;">
                 <div class="chart-container"><canvas id="chart-BTC"></canvas></div>
@@ -60,7 +64,11 @@
         <!-- TOP RIGHT: Alert Monitor Subscriber -->
         <section class="panel panel-alerts">
             <div class="panel-header">
-                <i class="ph ph-warning-circle"></i> SUB-ALERTS-01 (> 5% Drop Logic)
+                <div><i class="ph ph-warning-circle"></i> SUB-ALERTS-01 (> 5% Drop Logic)</div>
+                <div class="panel-actions">
+                    <span class="subscriber-status disconnected" id="status-SUB-ALERTS-01">Disconnected</span>
+                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-ALERTS-01" id="button-SUB-ALERTS-01">Reconnect</button>
+                </div>
             </div>
             <div class="alerts-container">
                 <ul id="alert-list" class="scrolling-list"></ul>
@@ -70,7 +78,11 @@
         <!-- BOTTOM RIGHT: Audit Log Subscriber -->
         <section class="panel panel-feed">
             <div class="panel-header">
-                <i class="ph ph-database"></i> SUB-AUDIT-01 (Raw JSON Firehose)
+                <div><i class="ph ph-database"></i> SUB-AUDIT-01 (Raw JSON Firehose)</div>
+                <div class="panel-actions">
+                    <span class="subscriber-status disconnected" id="status-SUB-AUDIT-01">Disconnected</span>
+                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-AUDIT-01" id="button-SUB-AUDIT-01">Reconnect</button>
+                </div>
             </div>
             <div class="feed-container" style="background: #000;">
                 <ul id="firehose-list" class="scrolling-list"></ul>
