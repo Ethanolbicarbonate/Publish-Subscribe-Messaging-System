@@ -126,12 +126,16 @@ class Broker:
             conn.close()
 
     def _route_message(self, msg: Message) -> None:
-        """Finds all matching subscribers for a published message and sends it."""
-        matched_subs = self.topic_manager.get_subscribers(msg.topic)
-        print(f"[Broker] Routing message {msg.msg_id} to {len(matched_subs)} subscribers.")
-        
-        for sub_id in matched_subs:
-            self.delivery_manager.deliver_message(msg, sub_id)
+            """Finds all matching subscribers for a published message and sends it."""
+            matched_subs = self.topic_manager.get_subscribers(msg.topic)
+            
+            # Enhanced logging for multi-topic observability
+            # We ignore $SYS topics to prevent terminal spam when monitoring multiple publishers
+            if not msg.topic.startswith("$SYS"):
+                print(f"[Broker] 🔀 Routing [{msg.topic}] (ID: {msg.msg_id[-6:]}) to {len(matched_subs)} subscribers.")
+            
+            for sub_id in matched_subs:
+                self.delivery_manager.deliver_message(msg, sub_id)
 
     def stop(self) -> None:
         """Gracefully shuts down the broker and thread pool."""
