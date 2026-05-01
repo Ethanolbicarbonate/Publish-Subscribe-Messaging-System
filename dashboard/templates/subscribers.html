@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscriber Hub</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
+        .nav-tab { color: var(--text-secondary); text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }
+        .nav-tab.active { background: rgba(59, 130, 246, 0.1); color: var(--color-blue); }
+        .dashboard-grid { grid-template-columns: 1.5fr 1fr; grid-template-rows: 1fr 1fr; }
+        .panel-charts { grid-row: 1 / 3; } /* Make charts span full height */
+        
+        .firehose-item {
+            font-family: var(--font-mono); font-size: 0.75rem; padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border-color); color: var(--text-secondary);
+        }
+        .firehose-item span.key { color: #93c5fd; }
+        .firehose-item span.string { color: #a7f3d0; }
+        .firehose-item span.number { color: #fde047; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="logo-icon"><i class="ph-fill ph-activity"></i></div>
+            <h1>PubSub Middleware</h1>
+            <nav class="nav-tabs">
+                <a href="/subscribers" class="nav-tab active">Subscriber Hub</a>
+                <a href="/publishers" class="nav-tab" target="_blank">Control Center (Publishers) &#8599;</a>
+            </nav>
+        </div>
+        <div class="connection-status">
+            <span id="socket-status-dot" class="status-dot offline"></span>
+            <span id="socket-status-text">Disconnected</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- LEFT: Visualizer Subscriber -->
+        <section class="panel panel-charts">
+            <div class="panel-header">
+                <i class="ph ph-chart-line-up"></i> SUB-VISUALIZER-01 (Listening to MARKET.#)
+            </div>
+            <div class="charts-grid" style="grid-template-rows: 1fr 1fr 1fr 1fr; grid-template-columns: 1fr;">
+                <div class="chart-container"><canvas id="chart-BTC"></canvas></div>
+                <div class="chart-container"><canvas id="chart-ETH"></canvas></div>
+                <div class="chart-container"><canvas id="chart-AAPL"></canvas></div>
+                <div class="chart-container"><canvas id="chart-MSFT"></canvas></div>
+            </div>
+        </section>
+
+        <!-- TOP RIGHT: Alert Monitor Subscriber -->
+        <section class="panel panel-alerts">
+            <div class="panel-header">
+                <i class="ph ph-warning-circle"></i> SUB-ALERTS-01 (> 5% Drop Logic)
+            </div>
+            <div class="alerts-container">
+                <ul id="alert-list" class="scrolling-list"></ul>
+            </div>
+        </section>
+
+        <!-- BOTTOM RIGHT: Audit Log Subscriber -->
+        <section class="panel panel-feed">
+            <div class="panel-header">
+                <i class="ph ph-database"></i> SUB-AUDIT-01 (Raw JSON Firehose)
+            </div>
+            <div class="feed-container" style="background: #000;">
+                <ul id="firehose-list" class="scrolling-list"></ul>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/alerts.js"></script>
+    <script src="/static/js/socket.js"></script>
+</body>
+</html>

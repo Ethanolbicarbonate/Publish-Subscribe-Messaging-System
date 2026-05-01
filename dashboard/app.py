@@ -1,64 +1,83 @@
 """
 Web Dashboard Server.
-Uses Flask to serve the frontend and Flask-SocketIO to stream
-real-time Pub/Sub events to connected browsers.
+Serves the decoupled Publisher Control Center and Subscriber Hub.
 """
 import eventlet
-# Patch standard library to be non-blocking for eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, jsonify
+import subprocess
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
-# --- Subphase 6.2 Additions ---
-from dashboard.dashboard_subscriber import DashboardSubscriber
+# Import our new decoupled backend subscribers
+from dashboard.subscribers.visualizer import VisualizerSubscriber
+from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
+from dashboard.subscribers.audit_log import AuditLogSubscriber
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
-# Use eventlet for async WebSocket operations, allow CORS for local dev
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
-# Shared state to track broker metrics 
-# (This will be updated by the Dashboard Subscriber in the next subphase)
-broker_stats = {
-    "connected_clients": 0,
-    "active_topics": 0,
-    "messages_delivered": 0,
-    "pending_acks": 0
-}
+# --- Routes ---
 
 @app.route('/')
 def index():
-    """Serves the main dashboard HTML page."""
-    # Note: index.html doesn't exist yet, we will build it in Subphase 6.3
-    return render_template('index.html')
+    """Redirect root to the subscriber hub."""
+    from flask import redirect
+    return redirect('/subscribers')
 
-@app.route('/api/status')
-def status():
-    """REST endpoint returning current broker statistics as JSON."""
-    return jsonify(broker_stats)
+@app.route('/subscribers')
+def subscribers_hub():
+    """Serves the main Hub showing Charts, Alerts, and the Firehose."""
+    return render_template('subscribers.html')
+
+@app.route('/publishers')
+def publishers_control():
+    """Serves the Control Center for triggering system events."""
+    return render_template('publishers.html')
+
+@app.route('/api/trigger_crash', methods=['POST'])
+def trigger_crash_api():
+    """REST endpoint triggered by the Control Center to spawn a Crash Publisher."""
+    data = request.json
+    topic = data.get("topic", "MARKET.CRYPTO.BTC")
+    price = str(data.get("price", "60000"))
+    drop = str(data.get("drop", "30"))
+    
+    print(f"[Dashboard API] 💥 Spawning Crash Simulator for {topic}...")
+    
+    # Spawn the crash_publisher as an entirely separate background process
+    # This proves the dashboard isn't doing the publishing directly!
+    subprocess.Popen([
+        "python", "-m", "demo.crash_publisher", 
+        topic, price, drop
+    ])
+    
+    return jsonify({"status": "success", "message": f"Crash publisher spawned for {topic}"})
+
+# --- WebSocket Handlers ---
 
 @socketio.on('connect')
 def handle_connect():
-    """Triggered when a new browser opens the dashboard."""
-    print("[Dashboard UI] 🌐 A browser connected to the live feed.")
+    print("[Dashboard UI] 🌐 Browser connected to WebSocket.")
 
-@socketio.on('disconnect')
-def handle_disconnect():
-    """Triggered when a browser closes the dashboard."""
-    print("[Dashboard UI] 🌐 A browser disconnected.")
+# --- Server Startup ---
 
 def run_dashboard():
-    """Starts the Flask-SocketIO server."""
     print(f"[Dashboard Server] Starting on port {DASHBOARD_PORT}...")
     
-    # --- Subphase 6.2 Additions ---
-    # Start the internal subscriber proxy in a background eventlet thread
-    dash_sub = DashboardSubscriber(socketio, broker_stats)
-    eventlet.spawn(dash_sub.start)
+    # 1. Initialize the independent subscriber backends, passing them the socket interface
+    vis_sub = VisualizerSubscriber(socketio)
+    alert_sub = AlertMonitorSubscriber(socketio)
+    audit_sub = AuditLogSubscriber(socketio)
     
-    # use_reloader=False is important here so it doesn't spawn duplicate processes
+    # 2. Spawn them as background eventlet threads
+    eventlet.spawn(vis_sub.start)
+    eventlet.spawn(alert_sub.start)
+    eventlet.spawn(audit_sub.start)
+    
+    # 3. Start the Flask web server
     socketio.run(app, host='0.0.0.0', port=DASHBOARD_PORT, debug=False, use_reloader=False)
 
 if __name__ == '__main__':

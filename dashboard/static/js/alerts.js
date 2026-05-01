@@ -17,7 +17,7 @@ function addAlert(alertData) {
         </div>
         <div class="alert-content">
             <div class="alert-header">
-                <span class="alert-stock">${alertData.stock}</span>
+                <span class="alert-stock">${alertData.symbol}</span>
                 <span class="alert-time">${time}</span>
             </div>
             <div class="alert-message">${alertData.message}</div>

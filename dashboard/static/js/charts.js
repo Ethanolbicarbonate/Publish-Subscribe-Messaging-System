@@ -53,10 +53,10 @@ function initChart(canvasId, symbol) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    initChart('chart-BTC', 'BTC');
+    initChart('chart-ETH', 'ETH');
     initChart('chart-AAPL', 'AAPL');
-    initChart('chart-TSLA', 'TSLA');
-    initChart('chart-GOOGL', 'GOOGL');
-    initChart('chart-AMZN', 'AMZN');
+    initChart('chart-MSFT', 'MSFT');
 });
 
 function updateChart(symbol, price, timestamp) {
