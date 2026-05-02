@@ -77,6 +77,15 @@ def subscriber_control_api(subscriber_id, action):
 
     if action == "disconnect":
         backend.subscriber.stop()
+        # Ensure the client is fully marked offline in case of race conditions
+        backend.subscriber.running = False
+        backend.subscriber.connected = False
+        if getattr(backend.subscriber, 'sock', None):
+            try:
+                backend.subscriber.sock.close()
+            except Exception:
+                pass
+            backend.subscriber.sock = None
         return jsonify({"status": "success", "subscriber_id": subscriber_id, "connected": False})
 
     if action == "reconnect":

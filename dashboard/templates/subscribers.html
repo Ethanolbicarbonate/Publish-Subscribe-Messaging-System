@@ -45,6 +45,10 @@
         <section class="panel panel-metrics">
             <div class="panel-header">
                 <div><i class="ph ph-activity"></i> Live Broker Metrics</div>
+                <div class="panel-actions">
+                    <span class="subscriber-status disconnected" id="status-SUB-METRICS-01">Disconnected</span>
+                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-METRICS-01" id="button-SUB-METRICS-01">Reconnect</button>
+                </div>
             </div>
             <div class="stats-grid">
                 <div class="stat-card" id="metric-connected-clients-card">
@@ -73,7 +77,7 @@
         <!-- LEFT: Visualizer Subscriber -->
         <section class="panel panel-charts">
             <div class="panel-header">
-                <div><i class="ph ph-chart-line-up"></i> SUB-VISUALIZER-01 (Listening to MARKET.#)</div>
+                <div><i class="ph ph-chart-line-up"></i> SUB-VISUALIZER-01</div>
                 <div class="panel-actions">
                     <span class="subscriber-status disconnected" id="status-SUB-VISUALIZER-01">Disconnected</span>
                     <button type="button" class="subscriber-btn" data-subscriber-id="SUB-VISUALIZER-01" id="button-SUB-VISUALIZER-01">Reconnect</button>
