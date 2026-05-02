@@ -41,38 +41,43 @@ class BaseClient:
         while self.running and not self.connected:
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                
+                # Connection Timeout & TCP Keepalive
+                self.sock.settimeout(5.0)  # Fail fast if broker is unreachable
                 self.sock.connect((self.host, self.port))
                 
-                # --- Handshake Phase ---
+                self.sock.settimeout(None) # Reset to blocking mode for data stream
+                self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                
+                # Handshake Phase
                 init_msg = Message(type='CONNECT', payload={"client_id": self.client_id})
                 send_message(self.sock, init_msg)
                 
                 welcome_msg = recv_message(self.sock)
                 if welcome_msg and welcome_msg.type == 'CONNECTED':
-                    # If this is our first connection, save the broker-assigned ID
                     if not self.client_id:
                         self.client_id = welcome_msg.payload.get("client_id")
                         
                     self.connected = True
-                    print(f"[Client] 🟢 Connected to Broker as {self.client_id}")
+                    print(f"[Client] Connected to Broker as {self.client_id}")
                     
-                    # Reset backoff on successful connection
                     backoff = 1.0 
                     
-                    # Start background daemon threads
                     threading.Thread(target=self._receive_loop, daemon=True).start()
                     threading.Thread(target=self._heartbeat_loop, daemon=True).start()
                     
-                    # Hook for subclasses (e.g., to resend subscriptions)
                     self.on_connect()
                     break
                 else:
-                    print("[Client] ⚠️ Handshake failed. Retrying...")
+                    print("[Client] Handshake failed. Retrying...")
                     self.sock.close()
 
-            except socket.error:
-                print(f"[Client] ⏳ Connection failed. Retrying in {backoff}s...")
-                time.sleep(backoff)
+            except (socket.error, socket.timeout):
+                print(f"[Client] Connection failed. Retrying in {backoff}s...")
+                # Graceful sleep chunking so stop() isn't blocked by a long sleep
+                for _ in range(int(backoff * 10)):
+                    if not self.running: return
+                    time.sleep(0.1)
                 backoff = min(backoff * 2, max_backoff)
 
     def _receive_loop(self) -> None:
@@ -81,11 +86,12 @@ class BaseClient:
             msg = recv_message(self.sock)
             
             if msg is None:
-                print("[Client] 🔴 Connection to broker lost.")
+                print("[Client] Connection to broker lost.")
                 self.connected = False
-                self.sock.close()
+                if self.sock:
+                    try: self.sock.close()
+                    except Exception: pass
                 
-                # Trigger auto-reconnect if the client wasn't manually stopped
                 if self.running:
                     self.connect()
                 break
@@ -95,15 +101,27 @@ class BaseClient:
     def _heartbeat_loop(self) -> None:
         """Background thread that sends periodic pings to keep the session alive."""
         while self.connected and self.running:
-            time.sleep(HEARTBEAT_INTERVAL)
+            # Sleep in chunks so we can exit cleanly
+            for _ in range(int(HEARTBEAT_INTERVAL * 10)):
+                if not self.connected or not self.running: return
+                time.sleep(0.1)
+                
             if self.connected:
                 hb_msg = Message(type=TYPE_HEARTBEAT)
-                self.send(hb_msg)
+                success = self.send(hb_msg)
+                
+                # --- NEW: Detect silent network drops ---
+                if not success:
+                    print(f"[Client] Heartbeat failed. Network dead. Forcing reconnect.")
+                    self.connected = False
+                    if self.sock:
+                        try: self.sock.close()
+                        except Exception: pass
+                    break
 
     def send(self, message: Message) -> bool:
         """Thread-safe method to send a message to the broker."""
         if not self.connected or not self.sock:
-            print(f"[Client] Cannot send {message.type}: Not connected.")
             return False
             
         with self.send_lock:
@@ -114,15 +132,12 @@ class BaseClient:
         self.running = False
         self.connected = False
         if self.sock:
-            self.sock.close()
+            try: self.sock.close()
+            except Exception: pass
         print("[Client] Shut down complete.")
 
-    # --- Hooks for Subclasses ---
-
     def on_connect(self) -> None:
-        """Invoked immediately after a successful connection/reconnection."""
         pass
 
     def handle_message(self, msg: Message) -> None:
-        """Invoked when a message is received. Subclasses must implement this."""
         pass

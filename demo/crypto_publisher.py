@@ -33,7 +33,7 @@ def run_crypto_feed():
                 if random.random() < 0.10:
                     swing = random.uniform(-0.15, 0.15) # Up to 15% instant swing
                     data["price"] *= (1 + swing)
-                    print(f"   [Crypto Pub] ⚡ Volatility spike on {symbol}!")
+                    print(f"   [Crypto Pub] Volatility spike on {symbol}!")
                 else:
                     # Normal random walk
                     change = random.uniform(-data["vol"], data["vol"])
