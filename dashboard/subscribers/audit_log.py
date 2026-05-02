@@ -14,13 +14,9 @@ class AuditLogSubscriber:
         self.subscriber = Subscriber(callback=self._on_message, client_id="SUB-AUDIT-01")
 
     def start(self):
-        self.subscriber.start()
-        time.sleep(1)
-        if self.subscriber.connected:
             print("[Audit Log] Active. Subscribing to # (Firehose).")
-            # The '#' wildcard with no prefix subscribes to LITERALLY everything,
-            # including MARKET topics and $SYS broker stats.
             self.subscriber.subscribe("#")
+            self.subscriber.start()
 
     def _on_message(self, msg: Message):
         # exact raw dictionary representation

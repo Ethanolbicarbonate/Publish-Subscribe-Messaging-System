@@ -13,12 +13,9 @@ class VisualizerSubscriber:
         self.subscriber = Subscriber(callback=self._on_message, client_id="SUB-VISUALIZER-01")
 
     def start(self):
-        self.subscriber.start()
-        time.sleep(1)
-        if self.subscriber.connected:
             print("[Visualizer] Active. Subscribing to MARKET.# for charts.")
-            # Use the multi-level wildcard '#' to catch MARKET.BLUECHIP.* and MARKET.CRYPTO.*
             self.subscriber.subscribe("MARKET.#")
+            self.subscriber.start()
 
     def _on_message(self, msg: Message):
         price = msg.payload.get("price")

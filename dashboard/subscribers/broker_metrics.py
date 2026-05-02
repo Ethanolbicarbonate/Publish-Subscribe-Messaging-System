@@ -12,11 +12,9 @@ class BrokerMetricsSubscriber:
         self.subscriber = Subscriber(callback=self._on_message, client_id="SUB-METRICS-01")
 
     def start(self):
-        self.subscriber.start()
-        time.sleep(1)
-        if self.subscriber.connected:
             print("[Broker Metrics] Active. Subscribing to $SYS.BROKER.STATS.")
             self.subscriber.subscribe("$SYS.BROKER.STATS")
+            self.subscriber.start()
 
     def _on_message(self, msg: Message):
         if msg.payload and isinstance(msg.payload, dict):

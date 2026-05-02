@@ -17,11 +17,9 @@ class AlertMonitorSubscriber:
         self.active_alerts = {}
 
     def start(self):
-        self.subscriber.start()
-        time.sleep(1)
-        if self.subscriber.connected:
             print("[Alert Monitor] Active. Subscribing to MARKET.# for anomaly detection.")
             self.subscriber.subscribe("MARKET.#")
+            self.subscriber.start()
 
     def _on_message(self, msg: Message):
         price = msg.payload.get("price")
