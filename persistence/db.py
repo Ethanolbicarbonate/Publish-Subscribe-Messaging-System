@@ -1,25 +1,30 @@
 """
 Raw SQLite database operations for message persistence.
-Ensures durable storage using a normalized schema to minimize I/O and storage footprint.
+Ensures durable storage using a normalized schema and Thread-Local caching.
 """
 
 import sqlite3
 import json
+import threading
 from typing import List, Dict, Any
 from common.constants import DB_PATH, STATUS_PENDING
 
+# Thread-local storage to reuse database connections per worker thread
+_local = threading.local()
+
 def _get_connection() -> sqlite3.Connection:
-    """Returns a fresh database connection. Safe for multi-threaded use."""
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row 
-    # Enable foreign keys for SQLite
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    """Returns a thread-local database connection to prevent high connection churn."""
+    if not hasattr(_local, "conn"):
+        _local.conn = sqlite3.connect(DB_PATH, timeout=15.0)
+        _local.conn.row_factory = sqlite3.Row 
+        _local.conn.execute("PRAGMA foreign_keys = ON")
+        _local.conn.execute("PRAGMA journal_mode = WAL")
+        _local.conn.execute("PRAGMA synchronous = NORMAL")
+    return _local.conn
 
 def init_db() -> None:
-    """Initializes the normalized database schema."""
+    """Initializes the normalized database schema and indexes."""
     with _get_connection() as conn:
-        # Table 1: Stores the heavy, immutable payload only once
         conn.execute("""
             CREATE TABLE IF NOT EXISTS messages (
                 msg_id TEXT PRIMARY KEY,
@@ -28,7 +33,6 @@ def init_db() -> None:
                 timestamp TEXT
             )
         """)
-        # Table 2: Maps subscribers to message states (junction table)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS delivery_status (
                 msg_id TEXT,
@@ -39,21 +43,23 @@ def init_db() -> None:
                 FOREIGN KEY (msg_id) REFERENCES messages(msg_id) ON DELETE CASCADE
             )
         """)
+        # Composite index to make retry loops fast
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_delivery_status 
+            ON delivery_status(subscriber_id, status)
+        """)
         conn.commit()
-    print("[DB] Normalized SQLite database initialized successfully.")
+    print("[DB] Optimized SQLite database initialized successfully.")
 
 def insert_message(msg_id: str, topic: str, payload: Dict[str, Any], 
                    timestamp: str, subscriber_id: str, status: str = STATUS_PENDING) -> None:
-    """Inserts a message and updates the subscriber delivery state."""
     with _get_connection() as conn:
-        # INSERT OR IGNORE ensures the heavy payload is only written once per msg_id
         conn.execute("""
             INSERT OR IGNORE INTO messages 
             (msg_id, topic, payload, timestamp)
             VALUES (?, ?, ?, ?)
         """, (msg_id, topic, json.dumps(payload), timestamp))
         
-        # Track the delivery state for this specific subscriber
         conn.execute("""
             INSERT OR IGNORE INTO delivery_status 
             (msg_id, subscriber_id, status, retry_count)
@@ -62,7 +68,6 @@ def insert_message(msg_id: str, topic: str, payload: Dict[str, Any],
         conn.commit()
 
 def get_messages_by_status(subscriber_id: str, status: str) -> List[sqlite3.Row]:
-    """Retrieves all messages for a subscriber via a JOIN."""
     with _get_connection() as conn:
         cursor = conn.execute("""
             SELECT m.msg_id, m.topic, m.payload, m.timestamp, d.status, d.retry_count, d.subscriber_id 
@@ -74,7 +79,6 @@ def get_messages_by_status(subscriber_id: str, status: str) -> List[sqlite3.Row]
         return cursor.fetchall()
 
 def update_status(msg_id: str, subscriber_id: str, new_status: str) -> None:
-    """Updates the delivery status of a specific message for a subscriber."""
     with _get_connection() as conn:
         conn.execute("""
             UPDATE delivery_status SET status = ? 
@@ -83,7 +87,6 @@ def update_status(msg_id: str, subscriber_id: str, new_status: str) -> None:
         conn.commit()
 
 def increment_retry(msg_id: str, subscriber_id: str) -> int:
-    """Increments the retry count and returns the new count."""
     with _get_connection() as conn:
         conn.execute("""
             UPDATE delivery_status SET retry_count = retry_count + 1 

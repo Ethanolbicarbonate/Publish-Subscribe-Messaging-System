@@ -43,11 +43,11 @@ class QueueManager:
 
     def mark_delivered(self, msg_id: str, subscriber_id: str) -> None:
         """
-        Marks a message as delivered, which can be implemented as either a status update or a deletion.
+        Marks a message as delivered by permanently deleting it from the tracking table.
+        This prevents infinite disk growth.
         """
-        db.update_status(msg_id, subscriber_id, STATUS_DELIVERED)
-        # Alternatively: db.delete_message(msg_id, subscriber_id)
-
+        db.delete_message(msg_id, subscriber_id)
+        
     def mark_dead_letter(self, msg_id: str, subscriber_id: str) -> None:
         """Marks a message as a dead letter after exhausting retries."""
         db.update_status(msg_id, subscriber_id, STATUS_DEAD_LETTER)

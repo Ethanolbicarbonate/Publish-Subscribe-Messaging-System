@@ -2,3 +2,5 @@
 __pycache__/
 
 persistence/pubsub.db
+persistence/pubsub.db-wal
+persistence/pubsub.db-shm
