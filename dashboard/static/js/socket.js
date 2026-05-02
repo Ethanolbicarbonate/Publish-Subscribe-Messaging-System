@@ -4,6 +4,8 @@ const statusDot = document.getElementById('socket-status-dot');
 const statusText = document.getElementById('socket-status-text');
 const connectedClientsEl = document.getElementById('metric-connected-clients');
 const connectedClientsCard = document.getElementById('metric-connected-clients-card');
+const subscriptionPatternsEl = document.getElementById('metric-subscription-patterns');
+const subscriptionPatternsCard = document.getElementById('metric-subscription-patterns-card');
 const activeTopicsEl = document.getElementById('metric-active-topics');
 const activeTopicsCard = document.getElementById('metric-active-topics-card');
 const messagesSeenEl = document.getElementById('metric-messages-seen');
@@ -19,7 +21,12 @@ function formatClientsTooltip(clientList = [], subscriptions = {}) {
     }).join('\n');
 }
 
-function formatTopicsTooltip(topics = []) {
+function formatSubscriptionPatternsTooltip(patterns = []) {
+    if (!patterns.length) return 'No subscription patterns';
+    return patterns.join('\n');
+}
+
+function formatActiveTopicsTooltip(topics = []) {
     if (!topics.length) return 'No active topics';
     return topics.join('\n');
 }
@@ -34,8 +41,11 @@ function updateBrokerMetrics(stats) {
     if (connectedClientsEl) {
         connectedClientsEl.textContent = String(stats.connected_clients ?? 0);
     }
+    if (subscriptionPatternsEl) {
+        subscriptionPatternsEl.textContent = String(stats.subscription_patterns ?? 0);
+    }
     if (activeTopicsEl) {
-        activeTopicsEl.textContent = String(stats.active_topics ?? 0);
+        activeTopicsEl.textContent = String(stats.active_published_topics ?? 0);
     }
     if (pendingAcksEl) {
         pendingAcksEl.textContent = String(stats.pending_acks ?? 0);
@@ -43,8 +53,11 @@ function updateBrokerMetrics(stats) {
     if (connectedClientsCard) {
         connectedClientsCard.title = formatClientsTooltip(stats.connected_clients_list || [], stats.client_subscriptions || {});
     }
+    if (subscriptionPatternsCard) {
+        subscriptionPatternsCard.title = formatSubscriptionPatternsTooltip(stats.subscription_patterns_list || []);
+    }
     if (activeTopicsCard) {
-        activeTopicsCard.title = formatTopicsTooltip(stats.active_topics_list || []);
+        activeTopicsCard.title = formatActiveTopicsTooltip(stats.active_published_topics_list || []);
     }
 }
 

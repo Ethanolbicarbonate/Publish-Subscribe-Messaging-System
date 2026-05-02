@@ -24,8 +24,10 @@ class BrokerMetricsSubscriber:
                 "connected_clients": msg.payload.get("connected_clients", 0),
                 "connected_clients_list": msg.payload.get("connected_clients_list", []),
                 "client_subscriptions": msg.payload.get("client_subscriptions", {}),
-                "active_topics": msg.payload.get("active_topics", 0),
-                "active_topics_list": msg.payload.get("active_topics_list", []),
+                "subscription_patterns": msg.payload.get("subscription_patterns", 0),
+                "subscription_patterns_list": msg.payload.get("subscription_patterns_list", []),
+                "active_published_topics": msg.payload.get("active_published_topics", 0),
+                "active_published_topics_list": msg.payload.get("active_published_topics_list", []),
                 "pending_acks": msg.payload.get("pending_acks", 0),
             }
             self.socketio.emit('broker_stats_update', stats_data)

@@ -47,6 +47,10 @@ class Broker:
         self.session_manager = SessionManager(self.queue_manager, self.active_clients, self.clients_lock)
         self.heartbeat_monitor = HeartbeatMonitor(self.active_clients, self.clients_lock)
         
+        # Track published topics for metrics
+        self.active_published_topics = set()
+        self.last_publish_time = {}
+        
     def start(self) -> None:
         """Binds the server socket and begins accepting connections in a loop."""
         self.server_socket.bind((self.host, self.port))
@@ -127,6 +131,11 @@ class Broker:
 
     def _route_message(self, msg: Message) -> None:
             """Finds all matching subscribers for a published message and sends it."""
+            # Track published topics for metrics (exclude system topics)
+            if msg.type == TYPE_PUBLISH and not msg.topic.startswith("$SYS"):
+                self.active_published_topics.add(msg.topic)
+                self.last_publish_time[msg.topic] = time.time()
+            
             matched_subs = self.topic_manager.get_subscribers(msg.topic)
             
             # Enhanced logging for multi-topic observability
@@ -164,18 +173,28 @@ class Broker:
                     connected_clients_list = list(self.active_clients.keys())
 
                 with self.topic_manager._lock:
-                    active_topics_list = sorted(self.topic_manager._pattern_to_subs.keys())
+                    subscription_patterns_list = sorted(self.topic_manager._pattern_to_subs.keys())
                     client_subscriptions = {
                         client_id: sorted(self.topic_manager._sub_to_patterns.get(client_id, []))
                         for client_id in connected_clients_list
                     }
 
+                # Update active published topics: remove topics not published in last 10 seconds
+                current_time = time.time()
+                self.active_published_topics = {topic for topic, t in self.last_publish_time.items() if current_time - t < 3.0}
+                # Clean up old entries
+                self.last_publish_time = {topic: t for topic, t in self.last_publish_time.items() if current_time - t < 3.0}
+
+                active_published_topics_list = sorted(list(self.active_published_topics))
+
                 stats_payload = {
                     "connected_clients": len(connected_clients_list),
                     "connected_clients_list": connected_clients_list,
                     "client_subscriptions": client_subscriptions,
-                    "active_topics": len(active_topics_list),
-                    "active_topics_list": active_topics_list,
+                    "subscription_patterns": len(subscription_patterns_list),
+                    "subscription_patterns_list": subscription_patterns_list,
+                    "active_published_topics": len(active_published_topics_list),
+                    "active_published_topics_list": active_published_topics_list,
                     "pending_acks": pending_acks
                 }
 
