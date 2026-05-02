@@ -2,11 +2,54 @@ const socket = io();
 
 const statusDot = document.getElementById('socket-status-dot');
 const statusText = document.getElementById('socket-status-text');
+const connectedClientsEl = document.getElementById('metric-connected-clients');
+const connectedClientsCard = document.getElementById('metric-connected-clients-card');
+const activeTopicsEl = document.getElementById('metric-active-topics');
+const activeTopicsCard = document.getElementById('metric-active-topics-card');
+const messagesSeenEl = document.getElementById('metric-messages-seen');
+const pendingAcksEl = document.getElementById('metric-pending-acks');
+let messagesSeenCount = 0;
+
+function formatClientsTooltip(clientList = [], subscriptions = {}) {
+    if (!clientList.length) return 'No connected clients';
+    return clientList.map((clientId) => {
+        const patterns = subscriptions[clientId] || [];
+        const suffix = patterns.length ? `: ${patterns.join(', ')}` : '';
+        return `${clientId}${suffix}`;
+    }).join('\n');
+}
+
+function formatTopicsTooltip(topics = []) {
+    if (!topics.length) return 'No active topics';
+    return topics.join('\n');
+}
 
 socket.on('connect', () => {
     statusDot.classList.remove('offline');
     statusDot.classList.add('online');
     statusText.innerText = 'Connected';
+});
+
+function updateBrokerMetrics(stats) {
+    if (connectedClientsEl) {
+        connectedClientsEl.textContent = String(stats.connected_clients ?? 0);
+    }
+    if (activeTopicsEl) {
+        activeTopicsEl.textContent = String(stats.active_topics ?? 0);
+    }
+    if (pendingAcksEl) {
+        pendingAcksEl.textContent = String(stats.pending_acks ?? 0);
+    }
+    if (connectedClientsCard) {
+        connectedClientsCard.title = formatClientsTooltip(stats.connected_clients_list || [], stats.client_subscriptions || {});
+    }
+    if (activeTopicsCard) {
+        activeTopicsCard.title = formatTopicsTooltip(stats.active_topics_list || []);
+    }
+}
+
+socket.on('broker_stats_update', (stats) => {
+    updateBrokerMetrics(stats);
 });
 
 socket.on('disconnect', () => {
@@ -43,6 +86,11 @@ socket.on('audit_update', (rawJson) => {
     
     list.prepend(li);
     if (list.children.length > 50) list.lastElementChild.remove();
+
+    messagesSeenCount += 1;
+    if (messagesSeenEl) {
+        messagesSeenEl.textContent = String(messagesSeenCount);
+    }
 });
 
 function updateSubscriberUi(subscriberId, connected) {

@@ -160,12 +160,25 @@ class Broker:
                     cursor = conn.execute("SELECT COUNT(*) FROM delivery_status WHERE status = ?", ('PENDING',))
                     pending_acks = cursor.fetchone()[0]
 
+                with self.clients_lock:
+                    connected_clients_list = list(self.active_clients.keys())
+
+                with self.topic_manager._lock:
+                    active_topics_list = sorted(self.topic_manager._pattern_to_subs.keys())
+                    client_subscriptions = {
+                        client_id: sorted(self.topic_manager._sub_to_patterns.get(client_id, []))
+                        for client_id in connected_clients_list
+                    }
+
                 stats_payload = {
-                    "connected_clients": len(self.active_clients),
-                    "active_topics": len(self.topic_manager._pattern_to_subs),
+                    "connected_clients": len(connected_clients_list),
+                    "connected_clients_list": connected_clients_list,
+                    "client_subscriptions": client_subscriptions,
+                    "active_topics": len(active_topics_list),
+                    "active_topics_list": active_topics_list,
                     "pending_acks": pending_acks
                 }
-                
+
                 # Create an internal system message
                 sys_msg = Message(
                     type=TYPE_PUBLISH,

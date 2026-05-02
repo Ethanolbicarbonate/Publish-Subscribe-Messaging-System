@@ -14,6 +14,7 @@ from common.constants import DASHBOARD_PORT
 from dashboard.subscribers.visualizer import VisualizerSubscriber
 from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
 from dashboard.subscribers.audit_log import AuditLogSubscriber
+from dashboard.subscribers.broker_metrics import BrokerMetricsSubscriber
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
@@ -102,17 +103,20 @@ def run_dashboard():
     vis_sub = VisualizerSubscriber(socketio)
     alert_sub = AlertMonitorSubscriber(socketio)
     audit_sub = AuditLogSubscriber(socketio)
+    metrics_sub = BrokerMetricsSubscriber(socketio)
 
     dashboard_subscribers.update({
         vis_sub.subscriber.client_id: vis_sub,
         alert_sub.subscriber.client_id: alert_sub,
         audit_sub.subscriber.client_id: audit_sub,
+        metrics_sub.subscriber.client_id: metrics_sub,
     })
     
     # 2. Spawn them as background eventlet threads
     eventlet.spawn(vis_sub.start)
     eventlet.spawn(alert_sub.start)
     eventlet.spawn(audit_sub.start)
+    eventlet.spawn(metrics_sub.start)
     
     # 3. Start the Flask web server
     socketio.run(app, host='0.0.0.0', port=DASHBOARD_PORT, debug=False, use_reloader=False)

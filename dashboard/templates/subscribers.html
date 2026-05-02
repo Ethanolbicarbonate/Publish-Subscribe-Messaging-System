@@ -15,8 +15,6 @@
         .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
         .nav-tab { color: var(--text-secondary); text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }
         .nav-tab.active { background: rgba(59, 130, 246, 0.1); color: var(--color-blue); }
-        .dashboard-grid { grid-template-columns: 1.5fr 1fr; grid-template-rows: 1fr 1fr; }
-        .panel-charts { grid-row: 1 / 3; } /* Make charts span full height */
         
         .firehose-item {
             font-family: var(--font-mono); font-size: 0.75rem; padding: 0.5rem 1rem;
@@ -44,6 +42,34 @@
     </header>
 
     <main class="dashboard-grid">
+        <section class="panel panel-metrics">
+            <div class="panel-header">
+                <div><i class="ph ph-activity"></i> Live Broker Metrics</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card" id="metric-connected-clients-card">
+                    <i class="ph ph-users-three stat-icon"></i>
+                    <div class="stat-value" id="metric-connected-clients">0</div>
+                    <div class="stat-label">Connected Clients</div>
+                </div>
+                <div class="stat-card" id="metric-active-topics-card">
+                    <i class="ph ph-hash stat-icon"></i>
+                    <div class="stat-value" id="metric-active-topics">0</div>
+                    <div class="stat-label">Active Topics</div>
+                </div>
+                <div class="stat-card">
+                    <i class="ph ph-eye stat-icon"></i>
+                    <div class="stat-value" id="metric-messages-seen">0</div>
+                    <div class="stat-label">Messages Seen</div>
+                </div>
+                <div class="stat-card">
+                    <i class="ph ph-clock stat-icon"></i>
+                    <div class="stat-value" id="metric-pending-acks">0</div>
+                    <div class="stat-label">Pending ACKs</div>
+                </div>
+            </div>
+        </section>
+
         <!-- LEFT: Visualizer Subscriber -->
         <section class="panel panel-charts">
             <div class="panel-header">
@@ -53,7 +79,7 @@
                     <button type="button" class="subscriber-btn" data-subscriber-id="SUB-VISUALIZER-01" id="button-SUB-VISUALIZER-01">Reconnect</button>
                 </div>
             </div>
-            <div class="charts-grid" style="grid-template-rows: 1fr 1fr 1fr 1fr; grid-template-columns: 1fr;">
+            <div class="charts-grid">
                 <div class="chart-container"><canvas id="chart-BTC"></canvas></div>
                 <div class="chart-container"><canvas id="chart-ETH"></canvas></div>
                 <div class="chart-container"><canvas id="chart-AAPL"></canvas></div>
@@ -61,33 +87,35 @@
             </div>
         </section>
 
-        <!-- TOP RIGHT: Alert Monitor Subscriber -->
-        <section class="panel panel-alerts">
-            <div class="panel-header">
-                <div><i class="ph ph-warning-circle"></i> SUB-ALERTS-01 (> 5% Drop Logic)</div>
-                <div class="panel-actions">
-                    <span class="subscriber-status disconnected" id="status-SUB-ALERTS-01">Disconnected</span>
-                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-ALERTS-01" id="button-SUB-ALERTS-01">Reconnect</button>
+        <div class="side-panels">
+            <!-- TOP RIGHT: Alert Monitor Subscriber -->
+            <section class="panel panel-alerts">
+                <div class="panel-header">
+                    <div><i class="ph ph-warning-circle"></i> SUB-ALERTS-01 (> 5% Drop Logic)</div>
+                    <div class="panel-actions">
+                        <span class="subscriber-status disconnected" id="status-SUB-ALERTS-01">Disconnected</span>
+                        <button type="button" class="subscriber-btn" data-subscriber-id="SUB-ALERTS-01" id="button-SUB-ALERTS-01">Reconnect</button>
+                    </div>
                 </div>
-            </div>
-            <div class="alerts-container">
-                <ul id="alert-list" class="scrolling-list"></ul>
-            </div>
-        </section>
+                <div class="alerts-container">
+                    <ul id="alert-list" class="scrolling-list"></ul>
+                </div>
+            </section>
 
-        <!-- BOTTOM RIGHT: Audit Log Subscriber -->
-        <section class="panel panel-feed">
-            <div class="panel-header">
-                <div><i class="ph ph-database"></i> SUB-AUDIT-01 (Raw JSON Firehose)</div>
-                <div class="panel-actions">
-                    <span class="subscriber-status disconnected" id="status-SUB-AUDIT-01">Disconnected</span>
-                    <button type="button" class="subscriber-btn" data-subscriber-id="SUB-AUDIT-01" id="button-SUB-AUDIT-01">Reconnect</button>
+            <!-- BOTTOM RIGHT: Audit Log Subscriber -->
+            <section class="panel panel-feed">
+                <div class="panel-header">
+                    <div><i class="ph ph-database"></i> SUB-AUDIT-01 (Raw JSON Firehose)</div>
+                    <div class="panel-actions">
+                        <span class="subscriber-status disconnected" id="status-SUB-AUDIT-01">Disconnected</span>
+                        <button type="button" class="subscriber-btn" data-subscriber-id="SUB-AUDIT-01" id="button-SUB-AUDIT-01">Reconnect</button>
+                    </div>
                 </div>
-            </div>
-            <div class="feed-container" style="background: #000;">
-                <ul id="firehose-list" class="scrolling-list"></ul>
-            </div>
-        </section>
+                <div class="feed-container" style="background: #000;">
+                    <ul id="firehose-list" class="scrolling-list"></ul>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script src="/static/js/charts.js"></script>
