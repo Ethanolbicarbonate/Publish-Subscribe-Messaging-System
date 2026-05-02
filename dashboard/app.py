@@ -2,6 +2,9 @@
 Web Dashboard Server.
 Serves the decoupled Publisher Control Center and Subscriber Hub.
 """
+import sys
+import subprocess
+
 import eventlet
 eventlet.monkey_patch()
 
@@ -50,9 +53,8 @@ def trigger_crash_api():
     
     print(f"[Dashboard API] Spawning Crash Simulator for {topic}...")
     
-    # Spawn the crash_publisher as an entirely separate background process
     subprocess.Popen([
-        "python", "-m", "demo.crash_publisher", 
+        sys.executable, "-m", "demo.crash_publisher", 
         topic, price, drop
     ])
     

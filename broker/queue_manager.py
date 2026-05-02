@@ -44,7 +44,7 @@ class QueueManager:
     def mark_delivered(self, msg_id: str, subscriber_id: str) -> None:
         """
         Marks a message as delivered by permanently deleting it from the tracking table.
-        This prevents infinite disk growth.
+        Prevents infinite disk growth.
         """
         db.delete_message(msg_id, subscriber_id)
         

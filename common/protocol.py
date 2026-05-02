@@ -53,8 +53,14 @@ def recv_message(sock: socket.socket) -> Message | None:
         json_data = payload_bytes.decode(ENCODING)
         msg_dict = json.loads(json_data)
         return Message.from_dict(msg_dict)
-    except (socket.error, struct.error, json.JSONDecodeError) as e:
-        # Connection reset, closed, or corrupted data
+    except (socket.error, struct.error) as e:
+        # Normal connection drops
+        return None
+    except json.JSONDecodeError as e:
+        print(f"[Protocol Error] Received corrupted JSON payload: {e}")
+        return None
+    except Exception as e:
+        print(f"[Protocol Error] Unexpected failure during recv: {e}")
         return None
 
 def _recv_all(sock: socket.socket, n: int) -> bytes | None:

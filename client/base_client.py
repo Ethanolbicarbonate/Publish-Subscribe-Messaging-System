@@ -10,7 +10,7 @@ import threading
 import time
 from typing import Optional
 
-from common.constants import HOST, BROKER_PORT, HEARTBEAT_INTERVAL, TYPE_HEARTBEAT
+from common.constants import HOST, BROKER_PORT, HEARTBEAT_INTERVAL, TYPE_HEARTBEAT, TYPE_CONNECT, TYPE_CONNECTED
 from common.protocol import send_message, recv_message
 from common.message import Message
 
@@ -50,11 +50,11 @@ class BaseClient:
                 self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 
                 # Handshake Phase
-                init_msg = Message(type='CONNECT', payload={"client_id": self.client_id})
+                init_msg = Message(type=TYPE_CONNECT, payload={"client_id": self.client_id})
                 send_message(self.sock, init_msg)
                 
                 welcome_msg = recv_message(self.sock)
-                if welcome_msg and welcome_msg.type == 'CONNECTED':
+                if welcome_msg and welcome_msg.type == TYPE_CONNECTED:
                     if not self.client_id:
                         self.client_id = welcome_msg.payload.get("client_id")
                         

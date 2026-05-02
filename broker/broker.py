@@ -11,7 +11,7 @@ import concurrent.futures
 from typing import Dict
 from common.constants import (
     HOST, BROKER_PORT, TYPE_PUBLISH, TYPE_SUBSCRIBE, 
-    TYPE_UNSUBSCRIBE, TYPE_CONNECTED, TYPE_ACK, TYPE_HEARTBEAT
+    TYPE_UNSUBSCRIBE, TYPE_CONNECTED, TYPE_ACK, TYPE_HEARTBEAT, TYPE_CONNECT
 )
 from common.protocol import recv_message, send_message
 from common.message import Message
@@ -86,7 +86,7 @@ class Broker:
         client_id = None
         try:
             init_msg = recv_message(conn)
-            if not init_msg or init_msg.type != 'CONNECT':
+            if not init_msg or init_msg.type != TYPE_CONNECT:
                 print(f"[Broker] Invalid handshake from {addr}. Expected CONNECT. Closing.")
                 return
                 
