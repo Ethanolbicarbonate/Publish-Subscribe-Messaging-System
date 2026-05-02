@@ -15,7 +15,7 @@ class BrokerMetricsSubscriber:
         self.subscriber.start()
         time.sleep(1)
         if self.subscriber.connected:
-            print("📡 [Broker Metrics] Active. Subscribing to $SYS.BROKER.STATS.")
+            print("[Broker Metrics] Active. Subscribing to $SYS.BROKER.STATS.")
             self.subscriber.subscribe("$SYS.BROKER.STATS")
 
     def _on_message(self, msg: Message):

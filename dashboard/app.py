@@ -10,7 +10,7 @@ from flask import Flask, render_template, request, jsonify, abort
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
-# Import our new decoupled backend subscribers
+# backend subscribers
 from dashboard.subscribers.visualizer import VisualizerSubscriber
 from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
 from dashboard.subscribers.audit_log import AuditLogSubscriber
@@ -45,13 +45,12 @@ def trigger_crash_api():
     """REST endpoint triggered by the Control Center to spawn a Crash Publisher."""
     data = request.json
     topic = data.get("topic", "MARKET.CRYPTO.BTC")
-    price = str(data.get("price", "60000"))
+    price = str(data.get("price", "175"))
     drop = str(data.get("drop", "30"))
     
-    print(f"[Dashboard API] 💥 Spawning Crash Simulator for {topic}...")
+    print(f"[Dashboard API] Spawning Crash Simulator for {topic}...")
     
     # Spawn the crash_publisher as an entirely separate background process
-    # This proves the dashboard isn't doing the publishing directly!
     subprocess.Popen([
         "python", "-m", "demo.crash_publisher", 
         topic, price, drop
@@ -77,7 +76,7 @@ def subscriber_control_api(subscriber_id, action):
 
     if action == "disconnect":
         backend.subscriber.stop()
-        # Ensure the client is fully marked offline in case of race conditions
+        # client is fully marked offline in case of race conditions
         backend.subscriber.running = False
         backend.subscriber.connected = False
         if getattr(backend.subscriber, 'sock', None):

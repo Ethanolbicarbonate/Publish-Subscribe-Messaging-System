@@ -43,9 +43,7 @@ class QueueManager:
 
     def mark_delivered(self, msg_id: str, subscriber_id: str) -> None:
         """
-        Marks a message as delivered. 
-        In a production system we might just delete it to save space, but 
-        updating the status leaves an audit trail if needed.
+        Marks a message as delivered, which can be implemented as either a status update or a deletion.
         """
         db.update_status(msg_id, subscriber_id, STATUS_DELIVERED)
         # Alternatively: db.delete_message(msg_id, subscriber_id)

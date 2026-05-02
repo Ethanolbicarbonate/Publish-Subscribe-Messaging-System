@@ -49,7 +49,7 @@ class DeliveryManager:
     def handle_ack(self, msg_id: str, subscriber_id: str) -> None:
         """Processes an acknowledgment, marking the message as delivered."""
         self.queue.mark_delivered(msg_id, subscriber_id)
-        print(f"[DeliveryManager] ✅ ACK received for msg {msg_id[-6:]} from {subscriber_id}")
+        print(f"[DeliveryManager] ACK received for msg {msg_id[-6:]} from {subscriber_id}")
 
     def _retry_loop(self) -> None:
         """
@@ -72,8 +72,8 @@ class DeliveryManager:
                     retry_count = self.queue.record_retry(msg.msg_id, sub_id)
                     
                     if retry_count > MAX_RETRIES:
-                        print(f"[DeliveryManager] ❌ Msg {msg.msg_id[-6:]} for {sub_id} exceeded max retries. Marking DEAD_LETTER.")
+                        print(f"[DeliveryManager] Msg {msg.msg_id[-6:]} for {sub_id} exceeded max retries. Marking DEAD_LETTER.")
                         self.queue.mark_dead_letter(msg.msg_id, sub_id)
                     else:
-                        print(f"[DeliveryManager] 🔄 Retrying msg {msg.msg_id[-6:]} for {sub_id} (Attempt {retry_count}/{MAX_RETRIES})")
+                        print(f"[DeliveryManager] Retrying msg {msg.msg_id[-6:]} for {sub_id} (Attempt {retry_count}/{MAX_RETRIES})")
                         send_message(conn, msg)

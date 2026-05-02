@@ -65,7 +65,7 @@ class Broker:
         try:
             while self.running:
                 conn, addr = self.server_socket.accept()
-                print(f"[Broker] 🟢 New connection established from {addr}")
+                print(f"[Broker] New connection established from {addr}")
                 
                 # Submit the client handling task to the Thread Pool
                 self.executor.submit(self._handle_client, conn, addr)
@@ -87,7 +87,7 @@ class Broker:
         try:
             init_msg = recv_message(conn)
             if not init_msg or init_msg.type != 'CONNECT':
-                print(f"[Broker] ⚠️ Invalid handshake from {addr}. Expected CONNECT. Closing.")
+                print(f"[Broker] Invalid handshake from {addr}. Expected CONNECT. Closing.")
                 return
                 
             client_id = init_msg.payload.get("client_id")
@@ -121,10 +121,10 @@ class Broker:
                     self.heartbeat_monitor.record_heartbeat(client_id)
                 
         except Exception as e:
-            print(f"[Broker] ⚠️ Error handling client {client_id}: {e}")
+            print(f"[Broker] Error handling client {client_id}: {e}")
         finally:
             if client_id:
-                print(f"[Broker] 🔴 Connection closed for {client_id}")
+                print(f"[Broker] Connection closed for {client_id}")
                 self.session_manager.deregister_client(client_id)
                 self.heartbeat_monitor.remove_client(client_id)
             conn.close()
@@ -138,21 +138,20 @@ class Broker:
             
             matched_subs = self.topic_manager.get_subscribers(msg.topic)
             
-            # Enhanced logging for multi-topic observability
+            # logging for multi-topic observability
             # We ignore $SYS topics to prevent terminal spam when monitoring multiple publishers
             if not msg.topic.startswith("$SYS"):
-                print(f"[Broker] 🔀 Routing [{msg.topic}] (ID: {msg.msg_id[-6:]}) to {len(matched_subs)} subscribers.")
+                print(f"[Broker] Routing [{msg.topic}] (ID: {msg.msg_id[-6:]}) to {len(matched_subs)} subscribers.")
             
             for sub_id in matched_subs:
                 self.delivery_manager.deliver_message(msg, sub_id)
 
     def stop(self) -> None:
-        """Gracefully shuts down the broker and thread pool."""
+        """shuts down the broker and thread pool."""
         self.running = False
         self.delivery_manager.stop()
         self.heartbeat_monitor.stop()
         
-        # Shut down the thread pool, don't wait for threads to finish if forcing exit
         print("[Broker] Shutting down thread pool...")
         self.executor.shutdown(wait=False)
         
@@ -179,7 +178,7 @@ class Broker:
                         for client_id in connected_clients_list
                     }
 
-                # Update active published topics: remove topics not published in last 10 seconds
+                # Update active published topics: remove topics not published
                 current_time = time.time()
                 self.active_published_topics = {topic for topic, t in self.last_publish_time.items() if current_time - t < 3.0}
                 # Clean up old entries
@@ -204,7 +203,6 @@ class Broker:
                     topic="$SYS.BROKER.STATS",
                     payload=stats_payload
                 )
-                # Route it just like a normal message
                 self._route_message(sys_msg)
 
 if __name__ == "__main__":

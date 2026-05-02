@@ -6,7 +6,7 @@ import time
 import random
 from client.publisher import Publisher
 
-# Baseline data for Crypto assets (much higher volatility)
+# Baseline data for Crypto assets (higher volatility than blue chips)
 CRYPTO = {
     "BTC":  {"price": 62000.00, "baseline": 62000.00, "vol": 0.03},
     "ETH":  {"price": 3400.00,  "baseline": 3400.00,  "vol": 0.04},
@@ -20,16 +20,16 @@ def run_crypto_feed():
     time.sleep(1)
     
     if not pub.connected:
-        print("[Crypto Pub] ⚠️ Failed to connect to broker. Exiting.")
+        print("[Crypto Pub] Failed to connect to broker. Exiting.")
         return
 
-    print("🚀 [Crypto Pub] Feed LIVE. Publishing volatile digital assets...")
+    print("[Crypto Pub] Feed LIVE. Publishing volatile digital assets...")
     print("Press Ctrl+C to stop.")
     
     try:
         while True:
             for symbol, data in CRYPTO.items():
-                # Occasional massive swings (10% chance)
+                # Occasional large swings (10% chance)
                 if random.random() < 0.10:
                     swing = random.uniform(-0.15, 0.15) # Up to 15% instant swing
                     data["price"] *= (1 + swing)
@@ -58,7 +58,7 @@ def run_crypto_feed():
             time.sleep(0.8)
             
     except KeyboardInterrupt:
-        print("\n🛑 [Crypto Pub] Feed offline.")
+        print("\n[Crypto Pub] Feed offline.")
     finally:
         pub.stop()
 

@@ -9,7 +9,7 @@ from typing import Set, Dict
 
 class TopicManager:
     def __init__(self):
-        # Maps a topic pattern (e.g., 'STOCK.*') to a set of subscriber_ids
+        # Maps a topic pattern to a set of subscriber_ids
         self._pattern_to_subs: Dict[str, Set[str]] = {}
         # Maps a subscriber_id to a set of topic patterns they are subscribed to
         self._sub_to_patterns: Dict[str, Set[str]] = {}
@@ -76,7 +76,7 @@ class TopicManager:
             Rules:
             - Exact string match returns True.
             - '*' acts as a wildcard for a single exact segment.
-            - '#' acts as a multi-level wildcard for all subsequent segments (must be at the end).
+            - '#' acts as a multi-level wildcard for all subsequent segments.
             """
             if pattern == topic:
                 return True

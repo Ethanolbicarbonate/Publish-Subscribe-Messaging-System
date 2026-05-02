@@ -23,7 +23,7 @@ def create_callback():
                 
             stock_symbol = msg.topic.split('.')[-1]
             
-            # Print a standard log for EVERY message so we can visually see the Queue Replay!
+            # log for EVERY message so we can visually see the Queue Replay
             print(f"  [Trace] {stock_symbol} updated to ${price:.2f}")
             
             # Check thresholds using the central constants
@@ -35,14 +35,14 @@ def create_callback():
                 active_alerts[stock_symbol] = True
                 
                 if price > ALERT_HIGH_THRESH:
-                    print(f"{COLOR_AMBER}🚨 [WARNING] {stock_symbol} surged to ${price:.2f} (>{ALERT_HIGH_THRESH}){COLOR_RESET}")
+                    print(f"{COLOR_AMBER}[WARNING] {stock_symbol} surged to ${price:.2f} (>{ALERT_HIGH_THRESH}){COLOR_RESET}")
                 elif price < ALERT_LOW_THRESH:
-                    print(f"{COLOR_RED}💥 [CRITICAL] {stock_symbol} plummeted to ${price:.2f} (<{ALERT_LOW_THRESH}){COLOR_RESET}")
+                    print(f"{COLOR_RED}[CRITICAL] {stock_symbol} plummeted to ${price:.2f} (<{ALERT_LOW_THRESH}){COLOR_RESET}")
                     
             elif not in_danger and is_alerting:
                 # STATE CHANGE: Danger -> Normal
                 active_alerts[stock_symbol] = False
-                print(f"{COLOR_GREEN}✅ [RECOVERED] {stock_symbol} stabilized at ${price:.2f}{COLOR_RESET}")
+                print(f"{COLOR_GREEN}[RECOVERED] {stock_symbol} stabilized at ${price:.2f}{COLOR_RESET}")
                 
         except Exception as e:
             print(f"Error processing message: {e}")
@@ -50,7 +50,7 @@ def create_callback():
     return on_message
 
 def run_alert_system():
-    print(f"🛡️ Starting CLI Alert System (Edge-Triggered).")
+    print(f"Starting CLI Alert System (Edge-Triggered).")
     print(f"   Monitoring for prices > ${ALERT_HIGH_THRESH} or < ${ALERT_LOW_THRESH}...")
     
     callback = create_callback()
@@ -60,19 +60,18 @@ def run_alert_system():
     time.sleep(1)
     
     if sub.connected:
-        print("✅ Connected to Broker. Subscribing to STOCK.*")
+        print("Connected to Broker. Subscribing to STOCK.*")
         sub.subscribe("STOCK.*")
     else:
-        print("❌ Failed to connect to broker.")
+        print("Failed to connect to broker.")
         return
         
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down Alert System...")
+        print("\nShutting down Alert System...")
         sub.stop()
     
 if __name__ == "__main__":
-    # We removed argparse because we are now perfectly synced with common.constants!
     run_alert_system()

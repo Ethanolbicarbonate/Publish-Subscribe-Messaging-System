@@ -1,4 +1,4 @@
-/* --- Modern Fintech Theme --- */
+/* --- Fintech look --- */
 :root {
     /* Tailwind Zinc Palette */
     --bg-dark: #09090b;
@@ -219,6 +219,19 @@ body {
     position: relative;
     min-height: 0;
     min-width: 0;
+}
+
+.chart-title {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* --- Stats --- */

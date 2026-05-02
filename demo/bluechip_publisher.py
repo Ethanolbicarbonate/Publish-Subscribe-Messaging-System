@@ -8,7 +8,7 @@ from client.publisher import Publisher
 
 # Baseline data for Blue Chip stocks
 BLUE_CHIPS = {
-    "AAPL": {"price": 175.50, "baseline": 175.50, "vol": 0.005}, # Very low volatility
+    "AAPL": {"price": 175.50, "baseline": 175.50, "vol": 0.005},
     "MSFT": {"price": 310.20, "baseline": 310.20, "vol": 0.006},
     "JPM":  {"price": 145.80, "baseline": 145.80, "vol": 0.004},
     "V":    {"price": 230.15, "baseline": 230.15, "vol": 0.003}
@@ -20,10 +20,10 @@ def run_bluechip_feed():
     time.sleep(1)
     
     if not pub.connected:
-        print("[BlueChip Pub] ⚠️ Failed to connect to broker. Exiting.")
+        print("[BlueChip Pub] Failed to connect to broker. Exiting.")
         return
 
-    print("🏢 [BlueChip Pub] Feed LIVE. Publishing stable equities...")
+    print("[BlueChip Pub] Feed LIVE. Publishing stable equities...")
     print("Press Ctrl+C to stop.")
     
     try:
@@ -52,7 +52,7 @@ def run_bluechip_feed():
             time.sleep(1.5)
             
     except KeyboardInterrupt:
-        print("\n🛑 [BlueChip Pub] Feed offline.")
+        print("\n[BlueChip Pub] Feed offline.")
     finally:
         pub.stop()
 

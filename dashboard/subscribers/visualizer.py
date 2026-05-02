@@ -16,7 +16,7 @@ class VisualizerSubscriber:
         self.subscriber.start()
         time.sleep(1)
         if self.subscriber.connected:
-            print("📊 [Visualizer] Active. Subscribing to MARKET.# for charts.")
+            print("[Visualizer] Active. Subscribing to MARKET.# for charts.")
             # Use the multi-level wildcard '#' to catch MARKET.BLUECHIP.* and MARKET.CRYPTO.*
             self.subscriber.subscribe("MARKET.#")
 
@@ -38,7 +38,7 @@ class VisualizerSubscriber:
 
 # --- Standalone Tester ---
 if __name__ == "__main__":
-    # A simple mock SocketIO class to test the subscriber without running the web server
+    # mock SocketIO class to test the subscriber without web server
     class MockSocketIO:
         def emit(self, event, data):
             print(f"[Mock WebSocket] Emitted '{event}': {data['symbol']} @ ${data['price']}")

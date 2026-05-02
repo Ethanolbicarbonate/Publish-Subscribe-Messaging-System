@@ -102,9 +102,9 @@ if __name__ == "__main__":
         print(f"Received Message: {received_msg.to_dict()}")
         assert original_msg.msg_id == received_msg.msg_id
         assert original_msg.payload["price"] == received_msg.payload["price"]
-        print("✅ Protocol Loopback Test Passed! Encode -> Decode works perfectly.")
+        print("Protocol Loopback Test Passed! Encode -> Decode works perfectly.")
     else:
-        print("❌ Protocol Loopback Test Failed!")
+        print("Protocol Loopback Test Failed!")
         
     sock1.close()
     sock2.close()

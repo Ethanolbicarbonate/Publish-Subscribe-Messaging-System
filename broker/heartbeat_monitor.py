@@ -58,7 +58,7 @@ class HeartbeatMonitor:
                     last_hb = self.last_heartbeats.get(client_id)
                     
                     if last_hb is not None and (now - last_hb) > timeout_threshold:
-                        print(f"[HeartbeatMonitor] 💀 Client {client_id} timed out (Missed heartbeats). Marking OFFLINE.")
+                        print(f"[HeartbeatMonitor] Client {client_id} timed out (Missed heartbeats). Marking OFFLINE.")
                         
                         # Close the socket. This forces recv_message in the client's 
                         # handler thread to fail, triggering a clean deregister.

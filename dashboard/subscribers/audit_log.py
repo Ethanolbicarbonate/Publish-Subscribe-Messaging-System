@@ -17,13 +17,13 @@ class AuditLogSubscriber:
         self.subscriber.start()
         time.sleep(1)
         if self.subscriber.connected:
-            print("🗄️ [Audit Log] Active. Subscribing to # (Firehose).")
+            print("[Audit Log] Active. Subscribing to # (Firehose).")
             # The '#' wildcard with no prefix subscribes to LITERALLY everything,
             # including MARKET topics and $SYS broker stats.
             self.subscriber.subscribe("#")
 
     def _on_message(self, msg: Message):
-        # We want the exact raw dictionary representation
+        # exact raw dictionary representation
         raw_data = msg.to_dict()
         
         # Broadcast the raw data to the frontend log panel
@@ -33,7 +33,7 @@ class AuditLogSubscriber:
 if __name__ == "__main__":
     class MockSocketIO:
         def emit(self, event, data):
-            # Print a truncated version of the raw JSON so it fits on one line
+            # truncated version of the raw JSON so it fits on one line
             raw_json = json.dumps(data)
             print(f"[Mock WebSocket Firehose] {raw_json[:100]}...")
 

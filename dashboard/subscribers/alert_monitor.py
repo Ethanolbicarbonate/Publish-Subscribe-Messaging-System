@@ -20,7 +20,7 @@ class AlertMonitorSubscriber:
         self.subscriber.start()
         time.sleep(1)
         if self.subscriber.connected:
-            print("🚨 [Alert Monitor] Active. Subscribing to MARKET.# for anomaly detection.")
+            print("[Alert Monitor] Active. Subscribing to MARKET.# for anomaly detection.")
             self.subscriber.subscribe("MARKET.#")
 
     def _on_message(self, msg: Message):
@@ -73,7 +73,7 @@ class AlertMonitorSubscriber:
 if __name__ == "__main__":
     class MockSocketIO:
         def emit(self, event, data):
-            # Print with emojis based on severity for easy terminal debugging
+            # emojis based on severity for terminal debugging
             icon = "🔴" if data["severity"] == "critical" else "🟢"
             print(f"\n{icon} [Mock WebSocket Alert] {data['message']}")
 

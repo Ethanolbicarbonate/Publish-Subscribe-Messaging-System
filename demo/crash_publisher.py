@@ -15,7 +15,7 @@ def trigger_crash(target_topic: str, current_price: float, drop_percentage: floa
     time.sleep(1.0)
     
     if not pub.connected:
-        print("[Crash Sim] ❌ Failed to connect to broker.")
+        print("[Crash Sim] Failed to connect to broker.")
         return
 
     # Calculate the new crashed price
@@ -29,7 +29,7 @@ def trigger_crash(target_topic: str, current_price: float, drop_percentage: floa
         "asset_class": "System Event",
         "symbol": symbol,
         "price": round(crashed_price, 2),
-        "volume": 9999999, # Massive sell-off volume
+        "volume": 9999999, # huge sell-off volume
         "event": "FLASH_CRASH"
     }
 
@@ -42,7 +42,6 @@ def trigger_crash(target_topic: str, current_price: float, drop_percentage: floa
     print("[Crash Sim] ✅ Payload delivered. Exiting.")
 
 if __name__ == "__main__":
-    # Allow passing arguments via command line for testing
     if len(sys.argv) == 4:
         topic = sys.argv[1]
         price = float(sys.argv[2])
@@ -51,6 +50,6 @@ if __name__ == "__main__":
         # Default test fallback
         topic = "MARKET.BLUECHIP.AAPL"
         price = 175.50
-        drop = 40.0 # 40% drop
+        drop = 40.0 #%
 
     trigger_crash(topic, price, drop)

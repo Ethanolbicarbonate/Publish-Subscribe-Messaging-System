@@ -12,7 +12,7 @@ BROKER_PORT = 9999
 DASHBOARD_PORT = 8080
 
 # --- Protocol Constants ---
-# We use a 4-byte big-endian integer to prefix all messages with their length.
+# 4-byte big-endian integer to prefix all messages with their length.
 HEADER_LENGTH = 4  
 ENCODING = 'utf-8'
 
