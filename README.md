@@ -7,8 +7,7 @@ A Python-based Publish-Subscribe middleware system featuring persistent queues, 
 - `docs/design_decisions.md` — design rationale and trade-offs
 - `docs/diagrams/` — architecture and workflow diagrams
 - `docs/System_Design_Document.pdf` — final document of the whole project
-- `tests/` — validation and simulation tests
-- `demo/` — demo publisher/subscriber scripts
+- `demo/` — demo publisher scripts
 
 ## Publishers
 - `crypto_publisher.py` — Publishes simulated cryptocurrency prices (BTC, ETH, SOL, DOGE) with random walks and volatility.
