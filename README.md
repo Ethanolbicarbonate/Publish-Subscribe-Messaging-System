@@ -49,3 +49,12 @@ The system uses hierarchical topic names with dot-separated levels. Publishers s
 2. Open your web browser and navigate to: http://localhost:8080/subscribers
 3. To test fault tolerance (Durable Queues), disconnect a subscriber from the dashboard (e.g., SUB-VISUALIZER-01), wait for Pending ACKs to rise, then reconnect to watch the queue replay.
 
+---
+
+Aquino, Dallas A.
+Buñag, Frederick Jibril L.
+Carbonell, Ethan Jed V.
+Corpes, Vincent L. Jr.
+
+BSCS 3A AI
+
