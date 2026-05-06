@@ -338,6 +338,25 @@ body {
     margin-bottom: 0.25rem;
 }
 
+.dashboard-footer {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    line-height: 1.8;
+    font-family: var(--font-ui);
+}
+.dashboard-footer .highlight {
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
 .alert-stock { font-weight: 600; font-family: var(--font-mono); color: var(--text-primary); }
 .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem;}
 .alert-message { color: var(--text-secondary); }

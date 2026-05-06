@@ -45,13 +45,29 @@
         .log-box { background: #000; font-family: var(--font-mono); font-size: 0.8rem; padding: 1rem; height: 300px; overflow-y: auto; color: #a1a1aa; border-radius: 4px;}
         .log-entry { border-bottom: 1px solid #27272a; padding: 0.5rem 0; }
         .log-topic { color: #60a5fa; font-weight: bold; margin-right: 1rem; }
+
+        body {
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh;
+        }
+        
+        .control-grid {
+            flex: 1;
+        }
+
+        .dashboard-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+        }
     </style>
 </head>
 <body>
     <header class="dashboard-header">
         <div class="header-left">
             <div class="logo-icon"><i class="ph-fill ph-activity"></i></div>
-            <h1>PubSub Middleware</h1>
+            <h1>Over Engineered PubSub Middleware Demo hehe</h1>
             <nav class="nav-tabs">
                 <a href="/subscribers" class="nav-tab">Subscriber Hub</a>
                 <a href="/publishers" class="nav-tab active">Control Center</a>
@@ -151,6 +167,21 @@
             </div>
         </section>
     </main>
+
+    <footer class="dashboard-footer">
+        <p>
+            <span class="highlight">Developers:</span> 
+            Dallas A. Aquino &bull; 
+            Frederick Jibril L. Buñag &bull; 
+            Ethan Jed V. Carbonell &bull; 
+            Vincent L. Corpes Jr.
+        </p>
+        <p>
+            <span class="highlight">Section:</span> BSCS 3A AI &nbsp;|&nbsp; 
+            <span class="highlight">Institution:</span> West Visayas State University - College of ICT &nbsp;|&nbsp; 
+            <span class="highlight">2026</span>
+        </p>
+    </footer>
 
     <script>
         // Crash API
