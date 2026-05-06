@@ -13,7 +13,6 @@ from flask import Flask, render_template, request, jsonify, abort
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
-# backend subscribers
 from dashboard.subscribers.visualizer import VisualizerSubscriber
 from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
 from dashboard.subscribers.audit_log import AuditLogSubscriber
@@ -25,7 +24,7 @@ socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 dashboard_subscribers = {}
 
-# --- Routes ---
+# Routes
 
 @app.route('/')
 def index():
@@ -78,7 +77,6 @@ def subscriber_control_api(subscriber_id, action):
 
     if action == "disconnect":
         backend.subscriber.stop()
-        # client is fully marked offline in case of race conditions
         backend.subscriber.running = False
         backend.subscriber.connected = False
         if getattr(backend.subscriber, 'sock', None):
@@ -98,18 +96,16 @@ def subscriber_control_api(subscriber_id, action):
 
     abort(400, description="Unsupported action")
 
-# --- WebSocket Handlers ---
+# WebSocket Handlers
 
 @socketio.on('connect')
 def handle_connect():
     print("[Dashboard UI] 🌐 Browser connected to WebSocket.")
 
-# --- Server Startup ---
 
 def run_dashboard():
     print(f"[Dashboard Server] Starting on port {DASHBOARD_PORT}...")
     
-    # 1. Initialize the independent subscriber backends, passing them the socket interface
     vis_sub = VisualizerSubscriber(socketio)
     alert_sub = AlertMonitorSubscriber(socketio)
     audit_sub = AuditLogSubscriber(socketio)
@@ -122,13 +118,11 @@ def run_dashboard():
         metrics_sub.subscriber.client_id: metrics_sub,
     })
     
-    # 2. Spawn them as background eventlet threads
     eventlet.spawn(vis_sub.start)
     eventlet.spawn(alert_sub.start)
     eventlet.spawn(audit_sub.start)
     eventlet.spawn(metrics_sub.start)
     
-    # 3. Start the Flask web server
     socketio.run(app, host='0.0.0.0', port=DASHBOARD_PORT, debug=False, use_reloader=False)
 
 if __name__ == '__main__':

@@ -32,7 +32,7 @@ class QueueManager:
         messages = []
         for row in rows:
             msg = Message(
-                type="PUBLISH",  # Reconstruct as a publish message
+                type="PUBLISH",
                 topic=row['topic'],
                 payload=json.loads(row['payload']),
                 msg_id=row['msg_id'],

@@ -12,13 +12,13 @@ function initChart(canvasId, symbol) {
             datasets: [{
                 label: symbol,
                 data: [],
-                borderColor: '#10b981', // Tailwind Green
+                borderColor: '#10b981',
                 borderWidth: 2,
-                tension: 0.2, // Smoother curve
+                tension: 0.2,
                 pointRadius: 0, 
                 pointHoverRadius: 4,
-                fill: true, // Enable gradient fill underneath
-                backgroundColor: 'rgba(16, 185, 129, 0.1)' // Default light green fill
+                fill: true,
+                backgroundColor: 'rgba(16, 185, 129, 0.1)'
             }]
         },
         options: {
@@ -74,16 +74,15 @@ function updateChart(symbol, price, timestamp) {
     const openPrice = openPrices[symbol];
     const isUp = price >= openPrice;
     
-    // Create dynamic gradient based on color
     const ctx = chart.ctx;
     const gradient = ctx.createLinearGradient(0, 0, 0, chart.height);
     
     if (isUp) {
-        chart.data.datasets[0].borderColor = '#10b981'; // Green
+        chart.data.datasets[0].borderColor = '#10b981';
         gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
         gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
     } else {
-        chart.data.datasets[0].borderColor = '#ef4444'; // Red
+        chart.data.datasets[0].borderColor = '#ef4444';
         gradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
         gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
     }

@@ -1,6 +1,5 @@
-/* --- Fintech look --- */
 :root {
-    /* Tailwind Zinc Palette */
+    
     --bg-dark: #09090b;
     --bg-panel: #18181b;
     --border-color: #27272a;
@@ -10,7 +9,7 @@
     --text-secondary: #a1a1aa;
     --text-muted: #71717a;
     
-    /* Vibrant Accents */
+    
     --color-green: #10b981;
     --color-green-glow: rgba(16, 185, 129, 0.2);
     --color-red: #ef4444;
@@ -19,7 +18,7 @@
     --color-amber-glow: rgba(245, 158, 11, 0.2);
     --color-blue: #3b82f6;
     
-    /* Typography */
+    
     --font-ui: 'Inter', system-ui, sans-serif;
     --font-mono: 'Fira Code', monospace;
 }
@@ -37,7 +36,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* --- Header --- */
+
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -85,7 +84,7 @@ body {
 .status-dot.online { background-color: var(--color-green); box-shadow: 0 0 10px var(--color-green); }
 .status-dot.offline { background-color: var(--color-red); box-shadow: 0 0 10px var(--color-red); }
 
-/* --- Grid --- */
+
 .dashboard-grid {
     flex: 1;
     display: grid;
@@ -116,7 +115,7 @@ body {
     min-height: 0;
 }
 
-/* --- Panels --- */
+
 .panel {
     background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
@@ -199,7 +198,7 @@ body {
     cursor: not-allowed;
 }
 
-/* --- Charts --- */
+
 .charts-grid {
     flex: 1;
     display: grid;
@@ -234,7 +233,7 @@ body {
     gap: 0.5rem;
 }
 
-/* --- Stats --- */
+
 .stats-grid {
     flex: 1;
     display: grid;
@@ -282,14 +281,14 @@ body {
     font-weight: 500;
 }
 
-/* --- Scrolling Areas --- */
+
 .feed-container, .alerts-container { flex: 1; overflow-y: auto; }
 
 .scrolling-list::-webkit-scrollbar { width: 6px; }
 .scrolling-list::-webkit-scrollbar-track { background: transparent; }
 .scrolling-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 
-/* --- Message Feed --- */
+
 .feed-item {
     padding: 0.6rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
@@ -314,9 +313,9 @@ body {
 }
 
 .payload-data { color: var(--text-secondary); }
-.payload-data span { color: var(--text-primary); } /* Highlight values */
+.payload-data span { color: var(--text-primary); } 
 
-/* --- Alerts --- */
+
 .alert-item {
     padding: 0.85rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
@@ -343,12 +342,12 @@ body {
 .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem;}
 .alert-message { color: var(--text-secondary); }
 
-/* Severity Colors */
+
 .alert-item.warning .alert-icon-wrapper { color: var(--color-amber); text-shadow: 0 0 10px var(--color-amber-glow); }
 .alert-item.critical .alert-icon-wrapper { color: var(--color-red); text-shadow: 0 0 10px var(--color-red-glow); }
 .alert-item.success .alert-icon-wrapper { color: var(--color-green); text-shadow: 0 0 10px var(--color-green-glow); }
 
-/* --- Flash Animations --- */
+
 @keyframes flashWarning { 0% { background-color: var(--color-amber-glow); border-color: var(--color-amber); } 100% { background-color: var(--bg-panel); border-color: var(--border-color); } }
 @keyframes flashCritical { 0% { background-color: var(--color-red-glow); border-color: var(--color-red); } 100% { background-color: var(--bg-panel); border-color: var(--border-color); } }
 @keyframes flashSuccess { 0% { background-color: var(--color-green-glow); border-color: var(--color-green); } 100% { background-color: var(--bg-panel); border-color: var(--border-color); } }

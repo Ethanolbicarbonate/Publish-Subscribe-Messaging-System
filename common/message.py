@@ -11,15 +11,10 @@ from typing import Any, Dict
 
 @dataclass
 class Message:
-    # Mandatory field for all messages
     type: str 
-    # Routing topic, default empty for non-publish messages (e.g. Heartbeats)
     topic: str = ""
-    # The actual data being sent
     payload: Dict[str, Any] = field(default_factory=dict)
-    # Unique identifier for tracking and at-least-once delivery deduping
     msg_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    # ISO8601 timestamp in UTC
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:

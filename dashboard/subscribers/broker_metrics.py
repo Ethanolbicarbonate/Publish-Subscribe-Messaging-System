@@ -30,11 +30,11 @@ class BrokerMetricsSubscriber:
             }
             self.socketio.emit('broker_stats_update', stats_data)
 
-# --- Standalone Tester ---
+# Standalone Tester
 if __name__ == "__main__":
     class MockSocketIO:
         def emit(self, event, data):
-            print(f"[Mock WebSocket Metrics] Emitted '{event}': {data}")
+            print(f"[CLI Metrics] Emitted '{event}': {data}")
 
     mock_io = MockSocketIO()
     metrics = BrokerMetricsSubscriber(mock_io)

@@ -5,7 +5,6 @@ function addAlert(alertData) {
     
     const time = new Date(alertData.timestamp).toLocaleTimeString([], { hour12: false });
     
-    // Select the right Phosphor icon based on severity
     let iconClass = "ph-info";
     if (alertData.severity === "critical") iconClass = "ph-fill ph-warning-octagon";
     if (alertData.severity === "warning") iconClass = "ph-fill ph-warning";

@@ -37,19 +37,16 @@ class Publisher(BaseClient):
         print(f"[Publisher {self.client_id}] Publishing to '{topic}': {payload}")
         return self.send(msg)
 
-# --- Quick Test / Usage Example ---
 if __name__ == "__main__":
     import time
     
-    # Initialize and connect the publisher
     pub = Publisher()
     pub.start()
     
-    # Wait a brief moment to ensure the connection and handshake complete
     time.sleep(1)
     
     if pub.connected:
         pub.publish("STOCK.AAPL", {"price": 150.25, "volume": 1000})
-        time.sleep(1) # Wait for network transmission before exiting
+        time.sleep(1)
         
     pub.stop()

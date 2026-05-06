@@ -34,7 +34,6 @@ class Broker:
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.running = False
         
-        # --- Thread Pool Optimization ---
         # Limit max concurrent client threads to prevent memory exhaustion
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=50)
         
@@ -55,6 +54,8 @@ class Broker:
         """Binds the server socket and begins accepting connections in a loop."""
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen()
+        
+        self.server_socket.settimeout(1.0)
         self.running = True
         
         self.delivery_manager.start()
@@ -64,11 +65,15 @@ class Broker:
         
         try:
             while self.running:
-                conn, addr = self.server_socket.accept()
-                print(f"[Broker] New connection established from {addr}")
-                
-                # Submit the client handling task to the Thread Pool
-                self.executor.submit(self._handle_client, conn, addr)
+                try: 
+                    conn, addr = self.server_socket.accept()
+                    conn.settimeout(None)
+                    print(f"[Broker] New connection established from {addr}")
+                    
+                    # Submit the client handling task to the Thread Pool
+                    self.executor.submit(self._handle_client, conn, addr)
+                except socket.timeout:
+                    continue
                 
         except KeyboardInterrupt:
             print("\n[Broker] Shutting down via KeyboardInterrupt...")

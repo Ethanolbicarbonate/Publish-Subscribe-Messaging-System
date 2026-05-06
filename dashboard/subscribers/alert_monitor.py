@@ -67,13 +67,11 @@ class AlertMonitorSubscriber:
             }
             self.socketio.emit('alert_update', alert_data)
 
-# --- Standalone Tester ---
+# Standalone Tester
 if __name__ == "__main__":
     class MockSocketIO:
         def emit(self, event, data):
-            # emojis based on severity for terminal debugging
-            icon = "🔴" if data["severity"] == "critical" else "🟢"
-            print(f"\n{icon} [Mock WebSocket Alert] {data['message']}")
+            print(f"[CLI Alert Monitor] {data['message']}")
 
     print("Testing Alert Monitor Subscriber independently...")
     mock_io = MockSocketIO()

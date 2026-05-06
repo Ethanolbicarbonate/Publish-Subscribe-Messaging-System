@@ -58,19 +58,17 @@ class HeartbeatMonitor:
             time.sleep(check_interval)
             now = time.time()
             
-            # 1. Safely grab a snapshot of connected clients
             with self.clients_lock:
                 client_ids = list(self.active_clients.keys())
                 
             for client_id in client_ids:
-                # 2. Safely check the last heartbeat time
                 with self._hb_lock:
                     last_hb = self.last_heartbeats.get(client_id)
                 
                 if last_hb is not None and (now - last_hb) > timeout_threshold:
                     print(f"[HeartbeatMonitor] Client {client_id} timed out (Missed heartbeats). Marking OFFLINE.")
                     
-                    # 3. Close the socket to force a clean disconnect in the worker thread
+                    # Close the socket to force a clean disconnect in the worker thread
                     with self.clients_lock:
                         conn = self.active_clients.get(client_id)
                         if conn:
@@ -79,5 +77,4 @@ class HeartbeatMonitor:
                             except Exception:
                                 pass
                     
-                    # 4. Remove from local tracking
                     self.remove_client(client_id)

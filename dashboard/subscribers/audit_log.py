@@ -25,13 +25,12 @@ class AuditLogSubscriber:
         # Broadcast the raw data to the frontend log panel
         self.socketio.emit('audit_update', raw_data)
 
-# --- Standalone Tester ---
+# Standalone Tester
 if __name__ == "__main__":
     class MockSocketIO:
         def emit(self, event, data):
-            # truncated version of the raw JSON so it fits on one line
             raw_json = json.dumps(data)
-            print(f"[Mock WebSocket Firehose] {raw_json[:100]}...")
+            print(f"[CLI Firehose] {raw_json[:100]}...")
 
     print("Testing Audit Log Subscriber independently...")
     mock_io = MockSocketIO()

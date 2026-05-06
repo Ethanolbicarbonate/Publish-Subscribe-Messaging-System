@@ -33,12 +33,11 @@ class VisualizerSubscriber:
             self.socketio.emit('chart_update', chart_data)
 
 
-# --- Standalone Tester ---
+# Standalone Tester
 if __name__ == "__main__":
-    # mock SocketIO class to test the subscriber without web server
     class MockSocketIO:
         def emit(self, event, data):
-            print(f"[Mock WebSocket] Emitted '{event}': {data['symbol']} @ ${data['price']}")
+            print(f"[CLI Visualizer] Emitted '{event}': {data['symbol']} @ ${data['price']}")
 
     print("Testing Visualizer Subscriber independently...")
     mock_io = MockSocketIO()

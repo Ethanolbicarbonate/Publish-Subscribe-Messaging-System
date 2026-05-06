@@ -22,7 +22,6 @@ class Subscriber(BaseClient):
         """
         super().__init__(client_id)
         self.callback = callback
-        # Store topics locally so we can resend them if the broker restarts
         self.active_topics: Set[str] = set()
 
     def subscribe(self, topic: str) -> bool:
@@ -62,39 +61,30 @@ class Subscriber(BaseClient):
         Processes PUBLISH messages, invokes the callback, and sends an ACK.
         """
         if msg.type == TYPE_PUBLISH:
-            # 1. Hand off to the application logic
             try:
                 self.callback(msg)
             except Exception as e:
                 print(f"[Subscriber {self.client_id}] Error in user callback: {e}")
-                # Note: In a production system, you might intentionally skip the ACK here 
-                # if the failure is transient, relying on the broker's retry mechanism.
-                # For this project, we'll log the error and proceed to ACK to avoid infinite loops.
 
-            # 2. Send Acknowledgment to broker to fulfill At-Least-Once delivery
+            # Send Acknowledgment
             ack_msg = Message(type=TYPE_ACK, payload={"msg_id": msg.msg_id})
             self.send(ack_msg)
 
 
-# --- Quick Test / Usage Example ---
 if __name__ == "__main__":
     import time
 
-    # Define a simple callback
     def my_callback(msg: Message):
         print(f"\n---> APP RECEIVED: Topic={msg.topic}, Payload={msg.payload}")
 
-    # Initialize and connect the subscriber
     sub = Subscriber(callback=my_callback, client_id="TEST-SUB-01")
     sub.start()
     
-    # Wait for handshake
     time.sleep(1)
     
     if sub.connected:
         sub.subscribe("STOCK.*")
         
-    # Keep the main thread alive to listen for background messages
     try:
         while True:
             time.sleep(1)

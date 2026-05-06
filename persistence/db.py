@@ -9,7 +9,6 @@ import threading
 from typing import List, Dict, Any
 from common.constants import DB_PATH, STATUS_PENDING
 
-# Thread-local storage to reuse database connections per worker thread
 _local = threading.local()
 
 def _get_connection() -> sqlite3.Connection:
@@ -43,7 +42,6 @@ def init_db() -> None:
                 FOREIGN KEY (msg_id) REFERENCES messages(msg_id) ON DELETE CASCADE
             )
         """)
-        # Composite index to make retry loops fast
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_delivery_status 
             ON delivery_status(subscriber_id, status)
@@ -109,7 +107,6 @@ def delete_message(msg_id: str, subscriber_id: str) -> None:
             WHERE msg_id = ? AND subscriber_id = ?
         """, (msg_id, subscriber_id))
         
-        # Cleanup payload if no subscribers need this message anymore
         conn.execute("""
             DELETE FROM messages
             WHERE msg_id = ? AND NOT EXISTS (

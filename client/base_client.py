@@ -43,13 +43,12 @@ class BaseClient:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 
                 # Connection Timeout & TCP Keepalive
-                self.sock.settimeout(5.0)  # Fail fast if broker is unreachable
+                self.sock.settimeout(5.0)
                 self.sock.connect((self.host, self.port))
                 
-                self.sock.settimeout(None) # Reset to blocking mode for data stream
+                self.sock.settimeout(None)
                 self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 
-                # Handshake Phase
                 init_msg = Message(type=TYPE_CONNECT, payload={"client_id": self.client_id})
                 send_message(self.sock, init_msg)
                 
@@ -74,7 +73,6 @@ class BaseClient:
 
             except (socket.error, socket.timeout):
                 print(f"[Client] Connection failed. Retrying in {backoff}s...")
-                # Graceful sleep chunking so stop() isn't blocked by a long sleep
                 for _ in range(int(backoff * 10)):
                     if not self.running: return
                     time.sleep(0.1)
@@ -101,7 +99,6 @@ class BaseClient:
     def _heartbeat_loop(self) -> None:
         """Background thread that sends periodic pings to keep the session alive."""
         while self.connected and self.running:
-            # Sleep in chunks so we can exit cleanly
             for _ in range(int(HEARTBEAT_INTERVAL * 10)):
                 if not self.connected or not self.running: return
                 time.sleep(0.1)
@@ -110,7 +107,6 @@ class BaseClient:
                 hb_msg = Message(type=TYPE_HEARTBEAT)
                 success = self.send(hb_msg)
                 
-                # --- NEW: Detect silent network drops ---
                 if not success:
                     print(f"[Client] Heartbeat failed. Network dead. Forcing reconnect.")
                     self.connected = False

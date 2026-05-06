@@ -6,7 +6,6 @@ import time
 import random
 from client.publisher import Publisher
 
-# Baseline data for Blue Chip stocks
 BLUE_CHIPS = {
     "AAPL": {"price": 175.50, "baseline": 175.50, "vol": 0.005},
     "MSFT": {"price": 310.20, "baseline": 310.20, "vol": 0.006},
@@ -29,11 +28,9 @@ def run_bluechip_feed():
     try:
         while True:
             for symbol, data in BLUE_CHIPS.items():
-                # Random walk based on volatility
                 change = random.uniform(-data["vol"], data["vol"])
                 data["price"] *= (1 + change)
                 
-                # Mean reversion (pulls price gently back to baseline)
                 difference = data["baseline"] - data["price"]
                 data["price"] += (difference * 0.05)
                 
@@ -44,11 +41,10 @@ def run_bluechip_feed():
                     "volume": random.randint(1000, 10000)
                 }
                 
-                # Publish to a highly specific topic hierarchy
+                # Publish
                 topic = f"MARKET.BLUECHIP.{symbol}"
                 pub.publish(topic, payload)
             
-            # Update frequency
             time.sleep(1.5)
             
     except KeyboardInterrupt:

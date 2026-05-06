@@ -41,6 +41,6 @@ class SessionManager:
         """
         pending_msgs = self.queue_manager.get_pending_messages(client_id)
         if pending_msgs:
-            print(f"[SessionManager] 🔄 Replaying {len(pending_msgs)} missed messages to {client_id}")
+            print(f"[SessionManager] Replaying {len(pending_msgs)} missed messages to {client_id}")
             for msg in pending_msgs:
                 send_message(conn, msg)

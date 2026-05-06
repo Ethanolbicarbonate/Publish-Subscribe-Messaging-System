@@ -16,14 +16,11 @@ def send_message(sock: socket.socket, message: Message) -> bool:
     and sends it over the socket.
     """
     try:
-        # 1. Serialize to JSON and encode to bytes
         json_data = json.dumps(message.to_dict())
         payload_bytes = json_data.encode(ENCODING)
         
-        # 2. Pack the length of the payload into a 4-byte big-endian integer ('!I')
         header = struct.pack('!I', len(payload_bytes))
         
-        # 3. Send header + payload over the socket
         sock.sendall(header + payload_bytes)
         return True
     except (socket.error, Exception) as e:
@@ -36,25 +33,23 @@ def recv_message(sock: socket.socket) -> Message | None:
     the exact payload bytes to reconstruct the Message.
     """
     try:
-        # 1. Read exactly the header length (4 bytes)
         header_bytes = _recv_all(sock, HEADER_LENGTH)
         if not header_bytes:
             return None
             
-        # 2. Unpack the header to get payload length
+        # Unpack the header to get payload length
         payload_length = struct.unpack('!I', header_bytes)[0]
         
-        # 3. Read exactly the payload length
+        # Read exactly the payload length
         payload_bytes = _recv_all(sock, payload_length)
         if not payload_bytes:
             return None
             
-        # 4. Decode bytes and reconstruct the Message
+        # Decode bytes and reconstruct the Message
         json_data = payload_bytes.decode(ENCODING)
         msg_dict = json.loads(json_data)
         return Message.from_dict(msg_dict)
     except (socket.error, struct.error) as e:
-        # Normal connection drops
         return None
     except json.JSONDecodeError as e:
         print(f"[Protocol Error] Received corrupted JSON payload: {e}")
@@ -73,22 +68,18 @@ def _recv_all(sock: socket.socket, n: int) -> bytes | None:
         try:
             packet = sock.recv(n - len(data))
             if not packet:
-                # Socket closed by the other side
                 return None
             data.extend(packet)
         except socket.error:
             return None
     return bytes(data)
 
-# --- Loopback Test ---
 if __name__ == "__main__":
     from common.constants import TYPE_PUBLISH
     print("Running Protocol Loopback Test...")
     
-    # Create an in-memory pair of connected sockets
     sock1, sock2 = socket.socketpair()
     
-    # Create a test message
     original_msg = Message(
         type=TYPE_PUBLISH,
         topic="STOCK.AAPL",
@@ -97,11 +88,9 @@ if __name__ == "__main__":
     
     print(f"Original Message: {original_msg.to_dict()}")
     
-    # Simulate sender sending over sock1
     send_success = send_message(sock1, original_msg)
     print(f"Send Successful: {send_success}")
     
-    # Simulate receiver receiving over sock2
     received_msg = recv_message(sock2)
     
     if received_msg:

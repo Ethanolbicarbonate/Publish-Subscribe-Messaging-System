@@ -37,10 +37,8 @@ class DeliveryManager:
         Enqueues the message to the durable store first, then attempts 
         an immediate delivery if the client is connected.
         """
-        # 1. Persist the message in PENDING state (At-Least-Once guarantee)
         self.queue.enqueue_for_subscriber(message, subscriber_id)
         
-        # 2. Try to send immediately if they are active
         with self.clients_lock:
             if subscriber_id in self.active_clients:
                 conn = self.active_clients[subscriber_id]
@@ -68,7 +66,6 @@ class DeliveryManager:
                 pending_msgs = self.queue.get_pending_messages(sub_id)
                 
                 for msg in pending_msgs:
-                    # Increment and check the retry counter
                     retry_count = self.queue.record_retry(msg.msg_id, sub_id)
                     
                     if retry_count > MAX_RETRIES:
