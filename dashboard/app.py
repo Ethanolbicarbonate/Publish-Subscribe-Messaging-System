@@ -18,6 +18,8 @@ from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
 from dashboard.subscribers.audit_log import AuditLogSubscriber
 from dashboard.subscribers.broker_metrics import BrokerMetricsSubscriber
 
+from dashboard.subscribers.dynamic_tester import DynamicTesterSubscriber
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
@@ -58,6 +60,24 @@ def trigger_crash_api():
     ])
     
     return jsonify({"status": "success", "message": f"Crash publisher spawned for {topic}"})
+
+@app.route('/api/test_subscribe', methods=['POST'])
+def test_subscribe_api():
+    topic = request.json.get("topic")
+    tester = dashboard_subscribers.get("SUB-TESTER-01")
+    if tester and tester.subscriber.connected:
+        tester.subscriber.subscribe(topic)
+        return jsonify({"status": "success", "message": f"Subscribed to {topic}"})
+    return jsonify({"status": "error", "message": "Tester offline"}), 400
+
+@app.route('/api/test_unsubscribe', methods=['POST'])
+def test_unsubscribe_api():
+    topic = request.json.get("topic")
+    tester = dashboard_subscribers.get("SUB-TESTER-01")
+    if tester and tester.subscriber.connected:
+        tester.subscriber.unsubscribe(topic)
+        return jsonify({"status": "success", "message": f"Unsubscribed from {topic}"})
+    return jsonify({"status": "error", "message": "Tester offline"}), 400
 
 @app.route('/api/subscribers/status')
 def subscribers_status_api():
@@ -110,18 +130,21 @@ def run_dashboard():
     alert_sub = AlertMonitorSubscriber(socketio)
     audit_sub = AuditLogSubscriber(socketio)
     metrics_sub = BrokerMetricsSubscriber(socketio)
+    tester_sub = DynamicTesterSubscriber(socketio)
 
     dashboard_subscribers.update({
         vis_sub.subscriber.client_id: vis_sub,
         alert_sub.subscriber.client_id: alert_sub,
         audit_sub.subscriber.client_id: audit_sub,
         metrics_sub.subscriber.client_id: metrics_sub,
+        tester_sub.subscriber.client_id: tester_sub,
     })
     
     eventlet.spawn(vis_sub.start)
     eventlet.spawn(alert_sub.start)
     eventlet.spawn(audit_sub.start)
     eventlet.spawn(metrics_sub.start)
+    eventlet.spawn(tester_sub.start)
     
     socketio.run(app, host='0.0.0.0', port=DASHBOARD_PORT, debug=False, use_reloader=False)
 

@@ -7,6 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         .control-grid {
@@ -29,10 +30,21 @@
             justify-content: center; gap: 0.5rem; transition: background 0.2s;
         }
         .btn-crash:hover { background: #b91c1c; }
+        
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .btn-sub { flex: 1; padding: 0.75rem; background: rgba(16, 185, 129, 0.2); color: var(--color-green); border: 1px solid var(--color-green); border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-sub:hover { background: rgba(16, 185, 129, 0.4); }
+        .btn-unsub { flex: 1; padding: 0.75rem; background: rgba(239, 68, 68, 0.2); color: var(--color-red); border: 1px solid var(--color-red); border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-unsub:hover { background: rgba(239, 68, 68, 0.4); }
+        
         .nav-tabs { display: flex; gap: 1rem; margin-left: 2rem; }
         .nav-tab { color: var(--text-secondary); text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }
         .nav-tab.active { background: rgba(59, 130, 246, 0.1); color: var(--color-blue); }
         .instructions { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin-top: 1rem;}
+        
+        .log-box { background: #000; font-family: var(--font-mono); font-size: 0.8rem; padding: 1rem; height: 300px; overflow-y: auto; color: #a1a1aa; border-radius: 4px;}
+        .log-entry { border-bottom: 1px solid #27272a; padding: 0.5rem 0; }
+        .log-topic { color: #60a5fa; font-weight: bold; margin-right: 1rem; }
     </style>
 </head>
 <body>
@@ -42,19 +54,18 @@
             <h1>PubSub Middleware</h1>
             <nav class="nav-tabs">
                 <a href="/subscribers" class="nav-tab">Subscriber Hub</a>
-                <a href="/publishers" class="nav-tab active">Control Center (Publishers)</a>
+                <a href="/publishers" class="nav-tab active">Control Center</a>
             </nav>
         </div>
     </header>
 
     <main class="control-grid">
         <section class="panel">
-            <div class="panel-header"><i class="ph ph-lightning"></i> Flash Crash Simulator</div>
+            <div class="panel-header"><i class="ph ph-lightning"></i> Flash Crash Simulator (Publisher)</div>
             <div style="padding: 1.5rem;">
                 <p class="instructions" style="margin-top: 0; margin-bottom: 1.5rem;">
-                    Trigger an external publisher script to connect to the broker, fire a massive negative price spike, and disconnect.
+                    Spawns an external publisher to fire a negative price spike, then disconnects.
                 </p>
-                
                 <div class="form-group">
                     <label>Target Asset (Topic)</label>
                     <select id="crash-topic">
@@ -68,59 +79,151 @@
                         <option value="MARKET.BLUECHIP.V">MARKET.BLUECHIP.V (Visa)</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
                     <label>Assumed Current Price</label>
                     <input type="number" id="crash-price" value="62000" step="any">
                 </div>
-                
                 <div class="form-group">
                     <label>Drop Percentage (%)</label>
                     <input type="number" id="crash-drop" value="25" min="1" max="99">
                 </div>
-                
                 <button class="btn-crash" onclick="triggerCrash()">
                     <i class="ph-fill ph-warning-octagon"></i> Execute Flash Crash
                 </button>
-                <div id="crash-status" style="margin-top: 1rem; font-size: 0.85rem; color: var(--color-green); display: none;">
-                    Crash script spawned successfully!
+            </div>
+        </section>
+
+        <!-- Subscription Tester Panel -->
+        <section class="panel">
+            <div class="panel-header"><i class="ph ph-plugs"></i> Dynamic Subscription Routing (Subscriber)</div>
+            <div style="padding: 1.5rem;">
+                <p class="instructions" style="margin-top: 0; margin-bottom: 1.5rem;">
+                    Test the Broker's Topic Manager. Subscribe to different patterns and watch the live logs below. Unsubscribing halts data delivery immediately.
+                </p>
+<div class="form-group">
+                    <label>Subscription Pattern</label>
+                    <select id="test-topic-pattern">
+                        <option value="#">#</option>
+                        <option value="MARKET.#">MARKET.#</option>
+                        <option value="MARKET.CRYPTO.#">MARKET.CRYPTO.#</option>
+                        <option value="MARKET.BLUECHIP.#">MARKET.BLUECHIP.#</option>
+                        
+                        <option value="MARKET.CRYPTO.BTC">MARKET.CRYPTO.BTC</option>
+                        <option value="MARKET.CRYPTO.ETH">MARKET.CRYPTO.ETH</option>
+                        <option value="MARKET.CRYPTO.SOL">MARKET.CRYPTO.SOL</option>
+                        <option value="MARKET.CRYPTO.DOGE">MARKET.CRYPTO.DOGE</option>
+                        
+                        <option value="MARKET.BLUECHIP.AAPL">MARKET.BLUECHIP.AAPL</option>
+                        <option value="MARKET.BLUECHIP.MSFT">MARKET.BLUECHIP.MSFT</option>
+                        <option value="MARKET.BLUECHIP.JPM">MARKET.BLUECHIP.JPM</option>
+                        <option value="MARKET.BLUECHIP.V">MARKET.BLUECHIP.V</option>
+                        
+                        <!-- Exact Match: System -->
+                        <option value="$SYS.BROKER.STATS">$SYS.BROKER.STATS</option>
+                    </select>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-sub" onclick="changeSubscription('subscribe')">
+                        <i class="ph ph-check-circle"></i> Subscribe
+                    </button>
+                    <button class="btn-unsub" onclick="changeSubscription('unsubscribe')">
+                        <i class="ph ph-x-circle"></i> Unsubscribe
+                    </button>
+                </div>
+                                <div class="btn-group" style="margin-top: 0.5rem;">
+                    <button class="btn-sub" style="background: rgba(59, 130, 246, 0.2); color: var(--color-blue); border-color: var(--color-blue);" onclick="manageConnection('reconnect')">
+                        <i class="ph ph-plug"></i> Connect Client
+                    </button>
+                    <button class="btn-unsub" style="background: rgba(245, 158, 11, 0.2); color: var(--color-amber); border-color: var(--color-amber);" onclick="manageConnection('disconnect')">
+                        <i class="ph ph-power"></i> Disconnect Client
+                    </button>
+                </div>
+                <div id="sub-status" style="margin-top: 1rem; font-size: 0.85rem; font-weight: bold; color: var(--color-blue); text-align: center;">
+                    Currently waiting for instructions.
                 </div>
             </div>
         </section>
 
-        <section class="panel">
-            <div class="panel-header"><i class="ph ph-info"></i> How it Works</div>
-            <div style="padding: 1.5rem;">
-                <p class="instructions">
-                    When you click "Execute", this dashboard does <strong>not</strong> send the message directly.
-                    <br><br>
-                    Instead, it executes the independent <code>demo/crash_publisher.py</code> script as a background process.
-                    That script acts as a completely separate client: it opens a TCP socket to the broker, handshakes, fires the message, and closes the connection.
-                    <br><br>
-                    Open the <strong>Subscriber Hub</strong> in another tab to watch the distinct backend subscribers react to the event in real-time.
-                </p>
+        <section class="panel" style="grid-column: 1 / -1;">
+            <div class="panel-header"><i class="ph ph-terminal"></i> Live Subscription Logs</div>
+            <div class="log-box" id="live-logs">
             </div>
         </section>
     </main>
 
     <script>
+        // Crash API
         async function triggerCrash() {
             const topic = document.getElementById('crash-topic').value;
             const price = document.getElementById('crash-price').value;
             const drop = document.getElementById('crash-drop').value;
-            
-            const response = await fetch('/api/trigger_crash', {
+            await fetch('/api/trigger_crash', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ topic, price, drop })
             });
+        }
+
+        // Subscription API
+        async function changeSubscription(action) {
+            const topic = document.getElementById('test-topic-pattern').value;
+            const endpoint = action === 'subscribe' ? '/api/test_subscribe' : '/api/test_unsubscribe';
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic })
+            });
             
             if (response.ok) {
-                const statusEl = document.getElementById('crash-status');
-                statusEl.style.display = 'block';
-                setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+                const statusEl = document.getElementById('sub-status');
+                if (action === 'subscribe') {
+                    statusEl.style.color = 'var(--color-green)';
+                    statusEl.innerText = `Subscribed to: ${topic}`;
+                } else {
+                    statusEl.style.color = 'var(--color-red)';
+                    statusEl.innerText = `Unsubscribed from: ${topic}`;
+                }
             }
         }
+
+        // --- Connection API ---
+        async function manageConnection(action) {
+            const response = await fetch(`/api/subscriber/SUB-TESTER-01/${action}`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                const statusEl = document.getElementById('sub-status');
+                if (action === 'disconnect') {
+                    statusEl.style.color = 'var(--color-amber)';
+                    statusEl.innerText = `Client Disconnected`;
+                } else {
+                    statusEl.style.color = 'var(--color-blue)';
+                    statusEl.innerText = `Client Reconnected`;
+                }
+            }
+        }
+
+        const socket = io();
+        const logBox = document.getElementById('live-logs');
+
+        socket.on('test_log_update', (data) => {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            
+            let payloadStr = "";
+            try { payloadStr = JSON.stringify(data.payload); } catch(e) {}
+
+            div.innerHTML = `<span class="log-topic">[${data.topic}]</span> <span style="color: #f4f4f5;">${payloadStr}</span>`;
+            
+            logBox.prepend(div);
+            
+            if (logBox.children.length > 50) {
+                logBox.lastElementChild.remove();
+            }
+        });
     </script>
 </body>
 </html>
