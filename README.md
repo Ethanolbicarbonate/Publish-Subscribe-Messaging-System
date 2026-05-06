@@ -43,9 +43,9 @@ The system uses hierarchical topic names with dot-separated levels. Publishers s
 1. Open multiple terminals and run:
     - Terminal 1: `python -m broker.broker` (starts the broker server)
     - Terminal 2: `python -m dashboard.app` (starts the web dashboard)
-    - Terminal 3: `python -m demo.crypto_publisher` (starts crypto price publisher)
-    - Terminal 4: `python -m demo.bluechip_publisher` (starts stock price publisher)
-    - Optional: `python -m demo.crash_publisher MARKET.CRYPTO.BTC 60000 30` (triggers a crash scenario)
+    - Terminal 3: `python -m publisher.crypto_publisher` (starts crypto price publisher)
+    - Terminal 4: `python -m publisher.bluechip_publisher` (starts stock price publisher)
+    - Optional: `python -m publisher.crash_publisher MARKET.CRYPTO.BTC 60000 30` (triggers a crash scenario)
 2. Open your web browser and navigate to: http://localhost:8080/subscribers
 3. To test fault tolerance (Durable Queues), disconnect a subscriber from the dashboard (e.g., SUB-VISUALIZER-01), wait for Pending ACKs to rise, then reconnect to watch the queue replay.
 

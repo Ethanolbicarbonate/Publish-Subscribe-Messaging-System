@@ -13,12 +13,12 @@ from flask import Flask, render_template, request, jsonify, abort
 from flask_socketio import SocketIO
 from common.constants import DASHBOARD_PORT
 
-from dashboard.subscribers.visualizer import VisualizerSubscriber
-from dashboard.subscribers.alert_monitor import AlertMonitorSubscriber
-from dashboard.subscribers.audit_log import AuditLogSubscriber
-from dashboard.subscribers.broker_metrics import BrokerMetricsSubscriber
+from subscribers.visualizer import VisualizerSubscriber
+from subscribers.alert_monitor import AlertMonitorSubscriber
+from subscribers.audit_log import AuditLogSubscriber
+from subscribers.broker_metrics import BrokerMetricsSubscriber
 
-from dashboard.subscribers.dynamic_tester import DynamicTesterSubscriber
+from subscribers.dynamic_tester import DynamicTesterSubscriber
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'pubsub-secret-key'
@@ -55,7 +55,7 @@ def trigger_crash_api():
     print(f"[Dashboard API] Spawning Crash Simulator for {topic}...")
     
     subprocess.Popen([
-        sys.executable, "-m", "demo.crash_publisher", 
+        sys.executable, "-m", "publisher.crash_publisher", 
         topic, price, drop
     ])
     
